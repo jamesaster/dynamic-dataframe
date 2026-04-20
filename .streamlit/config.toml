@@ -1,0 +1,6 @@
+[theme]
+primaryColor="#f6adc1"      		# Màu chủ đạo (nút bấm, thanh trượt)
+backgroundColor="#8db7ef"   		# Màu nền chính
+secondaryBackgroundColor="#F0F2F6" 	# Màu nền sidebar/vùng phụ
+textColor="#2e2f37"        		# Màu chữ
+font="sans serif"           		# Kiểu chữ (sans serif, serif, hoặc monospace)

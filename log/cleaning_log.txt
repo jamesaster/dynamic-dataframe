@@ -1,0 +1,58 @@
+--- Run at: 11-04-2026 11:26:18 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+[Stage_1] no match col: note + -> string_col
+[rev_validate] Detected: 1 revenue column (85.14% valid)
+[rev_validate] Revenue gaps: 1800 filled
+[rev_validate] revenue(mean) / alter_revenue(mean) = 100.43%
+df.index: RangeIndex(start=0, stop=12113, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 253 assigned 2025-01-10
+    [Match Both_day] Index [371, 372, 373] assigned 2025-01-14
+    [Match Both_day] Index [7464, 7465, 7466] assigned 2025-09-22
+    [Match Both_day] Index [7496, 7497, 7498, 7499] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+
+--- Run at: 13-04-2026 08:32:31 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+[rev_validate] Detected: 1 revenue column (85.14% valid)
+[rev_validate] Revenue gaps: 1800 filled
+[rev_validate] revenue(mean) / alter_revenue(mean) = 100.43%
+df.index: RangeIndex(start=0, stop=12113, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 253 assigned 2025-01-10
+    [Match Both_day] Index [371, 372, 373] assigned 2025-01-14
+    [Match Both_day] Index [7464, 7465, 7466] assigned 2025-09-22
+    [Match Both_day] Index [7496, 7497, 7498, 7499] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+
+--- Run at: 20-04-2026 08:00:30 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+[rev_validate] Detected: 1 revenue column (89.87% valid)
+[rev_validate] Revenue gaps: 1799 filled
+[rev_validate] revenue(mean) / alter_revenue(mean) = 100.80%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Đang đọc file sản phẩm...
+Đang trích xuất Color và Memory Size...
+Đang tạo tên sản phẩm chuẩn hóa...
+Đang anonymize giá...
+Saved product_master: ../CSV_write/Anonym_Price.csv
+Tổng số dòng: 5,091
