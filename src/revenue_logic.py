@@ -64,7 +64,7 @@ def rev_validate(df, payment_cols=None, results: dict=None)-> pd.DataFrame:
         
         if rev_val < 0.99:
             if payment_cols or price_n_qty_equal_1:
-                mask = df[rev].isna()
+                mask = (df[rev].isna() | df[rev] == 0)
                 df.loc[mask, rev] = rev_alter_val.loc[mask]
                 print(f'[rev_validate] Revenue gaps: {rev_na} filled')
             else:
