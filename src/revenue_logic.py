@@ -100,13 +100,13 @@ def rev_validate(df, payment_cols=None, disc_cols: list=None, results: dict=None
                 #! Pandas DataFrame có thể ở trạng thái View hoặc Copy tùy vào thao tác trước đó | No Guarantee |
                 #! Bài học rút ra sau 10 tiếng Debug: luôn tạo copy col liên quan trước khi tạo mask
                 col = df[rev].copy()   # 🔥 ép ổn định snapshot
-                mask = col.isna() | (col <= 0)
+                mask = col.isna() | (col == 0)
 
                 print(f"DEBUG NaN: {df[rev].isna().sum()}, mask: {(df[rev].isna() | (df[rev]==0)).sum()}")
                 print(f"{'DEBUG [rev_validate] rev_alternate.notna() count:':<50} {rev_alternate.notna().sum()}")
                 print(f"{'DEBUG [rev_validate] Index match ?:':<50} {df.index.equals(rev_alternate.index)}")
                 print(f"{'DEBUG [rev_validate] rev_alternate[mask].isna():':<50} {rev_alternate.loc[mask].isna().sum()} 👀")
-                print(f"{'DEBUG [rev_validate] rev.isna() | (rev <= 0) True:':<50} {mask.sum()} <==")
+                print(f"{'DEBUG [rev_validate] rev.isna() | (rev == 0) True:':<50} {mask.sum()} <==")
                 df.loc[mask, rev] = rev_alternate.loc[mask]
                 print(f"{'DEBUG [rev_validate] Revenue gaps filled:':<50} {mask.sum() - df[rev].isna().sum()} <== Final Result")
                 print(f"{'DEBUG [rev_validate] <N/a> count after filled:':<50} {df[rev].isna().sum()} 👀")
