@@ -53,10 +53,14 @@ def cal_revenue(df: pd.DataFrame, payment_cols: list=None, disc_cols: list=None,
     # Default mode = bỏ qua tính rev_alternate
     if mode != 'do_not_cal':
         if payment_cols:
-            rev_alternate = df[payment_cols].apply(pd.to_numeric, errors='coerce').sum(axis=1)
-        elif price_n_qty_equal_1:
-            rev_alternate = (df[list_price[0]] * df[list_qty[0]]) * (1 - pct_discount) - amt_discount
-            
+            pay = df[payment_cols].apply(pd.to_numeric, errors='coerce').sum(axis=1)
+            rev_alternate = pay.copy()
+        # Fall_back
+        if price_n_qty_equal_1:
+            p_q = (df[list_price[0]] * df[list_qty[0]]) * (1 - pct_discount) - amt_discount
+            pq_mask = (rev_alternate.isna() | rev_alternate == 0)
+            print(f"DEBUG [cal_revenue]: Fall_back price*qty mask={pq_mask.sum()}")
+            rev_alternate.loc[pq_mask] = p_q.loc[pq_mask]
     # attrs phải để cuối cùng chứ cho lên trước .loc là mất hết
     rev_alternate.attrs['results'] = results
     rev_alternate.attrs['price_n_qty_equal_1'] = price_n_qty_equal_1
@@ -91,21 +95,21 @@ def rev_validate(df, payment_cols=None, disc_cols: list=None, results: dict=None
         print(f'DEBUG [rev_validate] Detected: 1 revenue column ({rev_val*100:.2f}% valid)')
         
         if rev_val < 0.99:
-            print(f"Index tịnh tiến đều: {df.index.to_series().diff().nunique() <= 1}")
+
             if payment_cols or price_n_qty_equal_1:
                 #! Pandas DataFrame có thể ở trạng thái View hoặc Copy tùy vào thao tác trước đó | No Guarantee |
                 #! Bài học rút ra sau 10 tiếng Debug: luôn tạo copy col liên quan trước khi tạo mask
                 col = df[rev].copy()   # 🔥 ép ổn định snapshot
-                mask = col.isna() | (col == 0)
+                mask = col.isna() | (col <= 0)
 
-                print("NaN:", df[rev].isna().sum(), "| mask:", (df[rev].isna() | (df[rev]==0)).sum())
-                print(f"DEBUG: Số lượng hàng có thể cứu trong rev_alternate: {rev_alternate.notna().sum()}")
-                print(f"DEBUG: Index của df và rev_alternate có khớp 100% không: {df.index.equals(rev_alternate.index)}")
-                print(f"DEBUG: Giá trị rev_alternate tại những chỗ cần fill có bị NaN không: {rev_alternate.loc[mask].isna().sum()}")
-                print(f"{'DEBUG [rev_validate] Fill mask True:':<50} {mask.sum()} <------- IMPORTANCE")
+                print(f"DEBUG NaN: {df[rev].isna().sum()}, mask: {(df[rev].isna() | (df[rev]==0)).sum()}")
+                print(f"{'DEBUG [rev_validate] rev_alternate.notna() count:':<50} {rev_alternate.notna().sum()}")
+                print(f"{'DEBUG [rev_validate] Index match ?:':<50} {df.index.equals(rev_alternate.index)}")
+                print(f"{'DEBUG [rev_validate] rev_alternate[mask].isna():':<50} {rev_alternate.loc[mask].isna().sum()} 👀")
+                print(f"{'DEBUG [rev_validate] rev.isna() | (rev <= 0) True:':<50} {mask.sum()} <==")
                 df.loc[mask, rev] = rev_alternate.loc[mask]
-                print(f"{'DEBUG [rev_validate] Revenue gaps:':<50} {mask.sum()} filled <------- IMPORTANCE")
-                print(f"{'DEBUG [rev_validate] <N/a> count after filled:':<50} {df[rev].isna().sum()} <------- IMPORTANCE")
+                print(f"{'DEBUG [rev_validate] Revenue gaps filled:':<50} {mask.sum() - df[rev].isna().sum()} <== Final Result")
+                print(f"{'DEBUG [rev_validate] <N/a> count after filled:':<50} {df[rev].isna().sum()} 👀")
             else:
                 print(f'DEBUG [rev_validate] Insufficient data to fill in {rev_na} revenue gaps.')
 
