@@ -508,3 +508,507 @@ df.index: RangeIndex(start=0, stop=17761, step=1)
     [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
     Number of NaT in 'fill_date': 0
 Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:24:19 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:28:06 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:28:08 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:28:09 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:28:11 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:28:12 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:28:13 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 00:28:13 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+
+--- Run at: 23-04-2026 06:45:32 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 23-04-2026 07:35:16 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 24-04-2026 03:47:08 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Debug fill_price: 97
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 24-04-2026 03:49:05 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Debug fill_price: 34
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 24-04-2026 03:51:00 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Debug fill_price: 34
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 24-04-2026 04:03:12 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Debug fill_price: 34
+First price = 0: 0
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 24-04-2026 04:06:01 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Debug [fill_origin_price] invalid final price: 34
+Debug [fill_origin_price] 1st_price == 0 count: 0
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 24-04-2026 04:08:04 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Debug [fill_origin_price] invalid Re-creating price rows: 34
+Debug [fill_origin_price] 1st_price == 0 count: 34
+DEBUG Final invalid payment ratio: 16
+
+--- Run at: 24-04-2026 05:13:59 ---
+[Stage_1] no match col: imei_sn + -> string_col
+[Stage_1] no match col: sap_article + -> string_col
+[Stage_1] no match col: sap_description + -> string_col
+[Stage_1] no match col: email + -> string_col
+[Stage_1] no match col: name + -> string_col
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 6599091.157615815
+DEBUG [cal_revenue]: Fall_back price*qty mask=339
+DEBUG [rev_validate] Detected: 1 revenue column (89.87% valid)
+DEBUG NaN: 1799, mask: 2016
+DEBUG [rev_validate] rev_alternate.notna() count:  17644
+DEBUG [rev_validate] Index match ?:                True
+DEBUG [rev_validate] rev_alternate[mask].isna():   114 👀
+DEBUG [rev_validate] rev.isna() | (rev == 0) True: 2016 <==
+DEBUG [rev_validate] Revenue gaps filled:          1902 <== Final Result
+DEBUG [rev_validate] <N/a> count after filled:     114 👀
+DEBUG [rev_validate] revenue(mean) / alter_revenue(mean) = 100.28%
+df.index: RangeIndex(start=0, stop=17761, step=1)
+    Missing date detected, proceed ffill & bffll by anchor "invoice"
+    [Match Prev_day] Index 5907 assigned 2025-01-10
+    [Match Both_day] Index [6025, 6026] assigned 2025-01-14
+    [Match Both_day] Index [13115, 13116, 13117] assigned 2025-09-22
+    [Match Both_day] Index [13147, 13148, 13149, 13150] assigned 2025-09-23
+    Number of NaT in 'fill_date': 0
+Created "id" column for df_cust_master
+Debug [fill_origin_price] invalid Re-creating price rows: 34
+Debug [fill_origin_price] (1st_price == 0 | missing) count: 34
+DEBUG Final invalid payment ratio: 16
+# 8. ----- Remove original revenue --
+# 8. ----- Re_computing revenue -----
+DEBUG [cal_revenue]: percent_col=disc_percent, amount_col=disc_amount
+DEBUG [cal_revenue]: price=['price'], qty=Index(['qty'], dtype='object')
+DEBUG [cal_revenue]: price_n_qty_equal_1 True
+DEBUG [cal_revenue]: p_q.mean= 7603532.628250691
+DEBUG [cal_revenue]: Fall_back price*qty mask=17761
+DEBUG [rev_validate] Created new column: revenue
+# 8. ----- Added revenue col --------

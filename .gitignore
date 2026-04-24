@@ -3,3 +3,4 @@ __pycache__/
 *.csv
 *.json
 desktop.ini
+log/cleaning_log.txt
