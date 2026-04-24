@@ -46,6 +46,7 @@ def cal_revenue(df: pd.DataFrame, payment_cols: list=None, disc_cols: list=None,
         list_price = results.get('price', [])
         price_n_qty_equal_1 = len(list_price) == 1 and len(list_qty) == 1
         print(f"DEBUG [cal_revenue]: price={list_price}, qty={list_qty}")
+        print(f"DEBUG [cal_revenue]: price_n_qty_equal_1 {price_n_qty_equal_1}") #!!!
     
     # Khởi tạo Revenue_Alternate empty  
     #   Tránh lỗi UnboundLocalError trong IF
@@ -58,8 +59,15 @@ def cal_revenue(df: pd.DataFrame, payment_cols: list=None, disc_cols: list=None,
         # Fall_back
         if price_n_qty_equal_1:
             p_q = (df[list_price[0]] * df[list_qty[0]]) * (1 - pct_discount) - amt_discount
+            
+            print(f"DEBUG [cal_revenue]: p_q.mean= {p_q.mean()}")
+
             pq_mask = (rev_alternate.isna() | rev_alternate == 0)
+            if not payment_cols:
+                pq_mask[:] = True
+
             print(f"DEBUG [cal_revenue]: Fall_back price*qty mask={pq_mask.sum()}")
+            
             rev_alternate.loc[pq_mask] = p_q.loc[pq_mask]
     # attrs phải để cuối cùng chứ cho lên trước .loc là mất hết
     rev_alternate.attrs['results'] = results
