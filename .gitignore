@@ -1,6 +1,7 @@
-*.env
 __pycache__/
+*.env
 *.csv
 *.json
+*.parquet
 desktop.ini
 log/cleaning_log.txt
