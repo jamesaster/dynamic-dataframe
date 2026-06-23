@@ -1,22 +1,23 @@
-# Hệ thống & Cache
+# System
 __pycache__/
 *.pyc
 desktop.ini
 
-# Môi trường & Cấu hình bảo mật
+# Evironment & Config
 *.env
 .streamlit/
-.notebooks/
-.config/
-.CSV_read_only/
-.data_output/
+!.streamlit/config.toml
 *.egg-info/
+config/
+notebooks/
+data_output/
+CSV_read_only/
 
-# File nhật ký / Logs
+# Logs
 log/cleaning_log.txt
 *.log
 
-# Chặn tất cả các định dạng file dữ liệu thô
+# Data
 *.csv
 *.xls
 *.xlsx
