@@ -1,0 +1,9 @@
+duckdb==1.5.4
+google_api_python_client==2.197.0
+numpy==2.5.0
+pandas==3.0.3
+plotly==6.8.0
+protobuf==7.35.1
+python-dotenv==1.2.2
+streamlit==1.56.0
+streamlit_echarts==0.6.0

@@ -1,7 +1,24 @@
+# Hệ thống & Cache
 __pycache__/
+*.pyc
+desktop.ini
+
+# Môi trường & Cấu hình bảo mật
 *.env
+.streamlit/
+.notebooks/
+.config/
+.CSV_read_only/
+.data_output/
+*.egg-info/
+
+# File nhật ký / Logs
+log/cleaning_log.txt
+*.log
+
+# Chặn tất cả các định dạng file dữ liệu thô
 *.csv
+*.xls
+*.xlsx
 *.json
 *.parquet
-desktop.ini
-log/cleaning_log.txt

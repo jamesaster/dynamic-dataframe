@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 from src.datetime_logic import time_format
 from src.utils import is_boolean, is_datetime, is_alo, is_money, is_numeric, is_category
 
@@ -39,6 +40,11 @@ def stage_0(df: pd.DataFrame):
     #* Cái gì đi qua loop cũng chả còn vẹn nguyên :)
     # all_true down here is not all_true anymore
     pending_cols = colname[all_true].to_list()
+
+    print(f'[Stage_0] Detected: {len(colname)} columns')
+    print(f'[Stage_0] Matched: {sum(len(v) for v in results.values())} columns')
+    print(f'[Stage_0] Passing to [Stage_1]: {len(pending_cols)} columns')
+
     return df, results, pending_cols   
 def stage_1(output_stage_0)-> dict:
     #! stage_1: CAT_BY_SAMPLE_DATA
@@ -72,7 +78,10 @@ def stage_1(output_stage_0)-> dict:
             
         if not flag:
             results['string_col'].append(col)
-            print(f'[Stage_1] no match col: {col} + -> string_col')
+
+    print(f'[Stage_1] Result: {[f"{pocket}: {len(cols)}" for pocket, cols in results.items()]}')
+    print(f'[Stage_1] Others: {results.get("string_col", [])} > String')
+    print('\n')
     return results
 def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
     df_new = pd.DataFrame()
@@ -103,5 +112,10 @@ def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
     try:
         df_new = df_new[df.columns]
     except KeyError as e:
-        print(f"🫠 Execution > Mất cột: {e}")
+        missing_cols = set(df.columns) - set(df_new.columns)
+        print(f"🫠 Execution > Thiếu cột: {missing_cols}")
+        
+        existing_cols = [c for c in df.columns if c in df_new.columns]
+        df_new = df_new[existing_cols]
     return df_new
+

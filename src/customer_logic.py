@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import base64
 import re
 
@@ -6,7 +7,7 @@ def cus_normalize(df: pd.DataFrame, _p: str, _n: str, _e: str)-> pd.DataFrame:
     customer = [_p, _n, _e]
    
     #! 1. lower  >   replace(r'\s+')  >   strip
-    df[customer] = df[customer].apply(lambda col: col.astype('string').str.lower().str.replace(r'\s+', ' ',regex=True).str.strip())
+    df[customer] = df[customer].apply(lambda col: col.astype('string').str.lower().str.replace(r'\s+', ' ',regex=True).str.strip().replace('', np.nan))
 
     #! 2. Filter email
     e_mask = df[_e].str.contains(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', regex=True)

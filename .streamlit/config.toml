@@ -1,6 +1,28 @@
+[client]
+showSidebarNavigation = true
+
 [theme]
-primaryColor="#f6adc1"      		# Màu chủ đạo (nút bấm, thanh trượt)
-backgroundColor="#8db7ef"   		# Màu nền chính
-secondaryBackgroundColor="#F0F2F6" 	# Màu nền sidebar/vùng phụ
-textColor="#2e2f37"        		# Màu chữ
-font="sans serif"           		# Kiểu chữ (sans serif, serif, hoặc monospace)
+font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+baseRadius = "12px"
+primaryColor = "#5A94E8"
+textColor = "#49618D"
+base = "dark"
+
+backgroundColor = "white"
+secondaryBackgroundColor = "#ddefff"
+
+
+[theme.sidebar]
+font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+backgroundColor = "#1e293b"
+textColor = "#f1f5f9"
+secondaryBackgroundColor = "#334155"
+
+[server]
+runOnSave = false
+
+# (Watchdog dễ bị nháy kép) -> quét định kỳ (Poll)
+fileWatcherType = "poll"
+
+[browser]
+gatherUsageStats = false

@@ -110,6 +110,7 @@ def recover_date(df: pd.DataFrame, date_raw: str, anchor_col_name: str=None)-> l
             list_if_error = validate_n_correct_chunks(df, the_chunks, date_raw, 'fill_date')
     if not list_if_error:
         print(f"    Number of NaT in 'fill_date': {df['fill_date'].isna().sum()}")
+    print('\n')
     return df['fill_date'], list_if_error
 
 # ---- Nhóm Time -----

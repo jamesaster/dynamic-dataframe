@@ -68,17 +68,18 @@ def process_product_master(
     prod_salt: int,
     ran_seed: int,
     scale_dict: dict,
-    output_path: str = '../CSV_write/Anonym_Price.csv'
+    export_csv_path: str = ''
 ) -> pd.DataFrame:
     """
+    ## Stage 4 - Product Master Restructuring & Price Masking (Optional)
+
     Hàm chính xử lý product master
-    
     Parameters:
         product_info (str): Đường dẫn đến file CSV input
         prod_salt (int): Salt dùng để tạo master_sku
         ran_seed (int): Random seed cho price scaling
         scale_dict (dict): Dictionary scale giá từ DYNAMIC_PRICE.json
-        output_path (str): Đường dẫn file output
+        export_csv (bool): Có xuất file CSV không
     
     Returns:
         pd.DataFrame: DataFrame đã xử lý
@@ -171,41 +172,45 @@ def process_product_master(
     is_apple_device = is_apple & is_color
     is_sub_cat = product_master['detail_sub_lob'].notnull()
 
-    # Apple devices
-    product_master['new_product_name'] = np.where(
-        is_apple_device,
-        product_master['detail_sub_lob'].fillna('') + ' ' +
-        product_master['color'] + ' ' +
-        np.where(is_memory, product_master['memory_size'], ''),
-        None
-    )
+    # # Apple devices
+    # product_master['new_product_name'] = np.where(
+    #     is_apple_device,
+    #     product_master['detail_sub_lob'].fillna('') + ' ' +
+    #     product_master['color'] + ' ' +
+    #     np.where(is_memory, product_master['memory_size'], ''),
+    #     None
+    # )
 
-    # Non-Apple
-    non_apple = ~is_apple_device & is_color & is_sub_cat
-    product_master['new_product_name'] = np.where(
-        non_apple,
-        product_master['detail_sub_lob'] + ' ' + product_master['color'],
-        product_master['new_product_name']
-    )
+    # # Non-Apple
+    # non_apple = ~is_apple_device & is_color & is_sub_cat
+    # product_master['new_product_name'] = np.where(
+    #     non_apple,
+    #     product_master['detail_sub_lob'] + ' ' + product_master['color'],
+    #     product_master['new_product_name']
+    # )
 
-    other = product_master['new_product_name'].isnull()
-    product_master.loc[other, 'new_product_name'] = product_master['product_name']
+    # other = product_master['new_product_name'].isnull()
+    # product_master.loc[other, 'new_product_name'] = product_master['product_name']
 
-    product_master['new_product_name'] = product_master['new_product_name'].str.strip().str.upper()
-    product_master['product_name'] = product_master['new_product_name']
+    # product_master['new_product_name'] = product_master['new_product_name'].str.strip().str.upper()
+    # product_master['product_name'] = product_master['new_product_name']
 
     #  ANONYMIZE GIÁ 
     print("Đang anonymize giá...")
     product_master = price_scale(product_master, 'cat', 'price', scale_dict, ran_seed)
 
     #  CLEANUP
-    final_drop = ['sap_article', 'sap_description', 'new_product_name', 'price']
+    # final_drop = ['sap_article', 'sap_description', 'new_product_name', 'price']
+    final_drop = ['sap_description', 'new_product_name', 'price']
     product_master = product_master.drop(columns=final_drop, errors='ignore')
 
     # SAVE 
-    product_master.to_csv(output_path, index=False, encoding='utf-8-sig')
-    print(f'Saved product_master: {output_path}')
-    print(f'Tổng số dòng: {len(product_master):,}')
+    if export_csv_path:
+        # output_path = '../data_output/Anonym_Price.csv'
+        # output_path = '../data_output/Anonym_Price_29_05_26.csv'
+        product_master.to_csv(export_csv_path, index=False, encoding='utf-8-sig')
+        print(f'Saved product_master: {export_csv_path}')
+        print(f'Tổng số dòng: {len(product_master):,}')
 
     return product_master
 

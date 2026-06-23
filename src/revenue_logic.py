@@ -34,7 +34,7 @@ def cal_revenue(df: pd.DataFrame, payment_cols: list=None, disc_cols: list=None,
                 if mean_disc <= 1: 
                     disc_percent = col_name
                 else:  disc_amount = col_name
-            print(f"DEBUG [cal_revenue]: percent_col={disc_percent}, amount_col={disc_amount}")
+            print(f"DEBUG [cal_revenue] percent_col: '{disc_percent}', amount_col: '{disc_amount}'")
 
     pct_discount = df[disc_percent].fillna(0) if disc_percent else 0
     amt_discount = df[disc_amount].fillna(0) if disc_amount else 0
@@ -45,8 +45,8 @@ def cal_revenue(df: pd.DataFrame, payment_cols: list=None, disc_cols: list=None,
     if True: #* Extract cột price từ Result, tạo điều kiện *price_n_qty_equal_1
         list_price = results.get('price', [])
         price_n_qty_equal_1 = len(list_price) == 1 and len(list_qty) == 1
-        print(f"DEBUG [cal_revenue]: price={list_price}, qty={list_qty}")
-        print(f"DEBUG [cal_revenue]: price_n_qty_equal_1 {price_n_qty_equal_1}") #!!!
+        print(f"DEBUG [cal_revenue] price={list_price}, qty={list_qty}")
+        print(f"DEBUG [cal_revenue] price_n_qty_equal_1 {price_n_qty_equal_1}") #!!!
     
     # Khởi tạo Revenue_Alternate empty  
     #   Tránh lỗi UnboundLocalError trong IF
@@ -60,13 +60,13 @@ def cal_revenue(df: pd.DataFrame, payment_cols: list=None, disc_cols: list=None,
         if price_n_qty_equal_1:
             p_q = (df[list_price[0]] * df[list_qty[0]]) * (1 - pct_discount) - amt_discount
             
-            print(f"DEBUG [cal_revenue]: p_q.mean= {p_q.mean()}")
+            print(f"DEBUG [cal_revenue] p_q.mean= {p_q.mean()}")
 
             pq_mask = (rev_alternate.isna() | rev_alternate == 0)
             if not payment_cols:
                 pq_mask[:] = True
 
-            print(f"DEBUG [cal_revenue]: Fall_back price*qty mask={pq_mask.sum()}")
+            print(f"DEBUG [cal_revenue] Fall_back price*qty mask={pq_mask.sum()}")
             
             rev_alternate.loc[pq_mask] = p_q.loc[pq_mask]
     # attrs phải để cuối cùng chứ cho lên trước .loc là mất hết
@@ -100,7 +100,7 @@ def rev_validate(df, payment_cols=None, disc_cols: list=None, results: dict=None
         df[rev] = pd.to_numeric(df[rev], errors='coerce')
         rev_na = df[rev].isna().sum()
         rev_val = df[rev].notna().mean()
-        print(f'DEBUG [rev_validate] Detected: 1 revenue column ({rev_val*100:.2f}% valid)')
+        print(f'DEBUG [rev_validate] Detected: 1 revenue column ({rev_val*100:.2f}% rows are valid)')
         
         if rev_val < 0.99:
 
@@ -110,14 +110,13 @@ def rev_validate(df, payment_cols=None, disc_cols: list=None, results: dict=None
                 col = df[rev].copy()   # 🔥 ép ổn định snapshot
                 mask = col.isna() | (col == 0)
 
-                print(f"DEBUG NaN: {df[rev].isna().sum()}, mask: {(df[rev].isna() | (df[rev]==0)).sum()}")
                 print(f"{'DEBUG [rev_validate] rev_alternate.notna() count:':<50} {rev_alternate.notna().sum()}")
                 print(f"{'DEBUG [rev_validate] Index match ?:':<50} {df.index.equals(rev_alternate.index)}")
-                print(f"{'DEBUG [rev_validate] rev_alternate[mask].isna():':<50} {rev_alternate.loc[mask].isna().sum()} 👀")
+                print(f"{'DEBUG [rev_validate] rev_alternate[mask].isna():':<50} {rev_alternate.loc[mask].isna().sum()}")
                 print(f"{'DEBUG [rev_validate] rev.isna() | (rev == 0) True:':<50} {mask.sum()} <==")
                 df.loc[mask, rev] = rev_alternate.loc[mask]
                 print(f"{'DEBUG [rev_validate] Revenue gaps filled:':<50} {mask.sum() - df[rev].isna().sum()} <== Final Result")
-                print(f"{'DEBUG [rev_validate] <N/a> count after filled:':<50} {df[rev].isna().sum()} 👀")
+                print(f"{'DEBUG [rev_validate] <N/a> count after filled:':<50} {df[rev].isna().sum()}")
             else:
                 print(f'DEBUG [rev_validate] Insufficient data to fill in {rev_na} revenue gaps.')
 
@@ -132,4 +131,5 @@ def rev_validate(df, payment_cols=None, disc_cols: list=None, results: dict=None
     else:
         print(f"DEBUG [rev_validate] Cảnh báo: Có nhiều cột {key}: {list_rev}")
         
+    print('\n')
     return df
