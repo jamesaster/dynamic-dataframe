@@ -3,13 +3,14 @@ __pycache__/
 *.pyc
 desktop.ini
 
-# Evironment & Config
+# Environment & Config
 *.env
-.streamlit/
-!.streamlit/config.toml
+.streamlit/secrets.toml
 *.egg-info/
-config/
+
+# Folders to ignore
 notebooks/
+config/
 data_output/
 CSV_read_only/
 
