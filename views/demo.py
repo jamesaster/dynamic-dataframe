@@ -171,7 +171,7 @@ if pipeline_choice == 'Stock Ledger':
     start_period       = pd.to_datetime('08-05-2029', dayfirst=True)
     end_period         = pd.to_datetime('18-05-2029', dayfirst=True)
     raw_ledger.columns = recolumns
-    cleaned_ledger     = process_stockLedger(path_dummy_ledger)
+    cleaned_ledger     = process_stockLedger(raw_ledger)
     cleaned_ledger.insert(2, s.cat, addition_info[s.cat].values)
     cleaned_ledger[s.price] = addition_info[s.price].values
     tree_event         = {s.cat: 'APPLE ACC'}

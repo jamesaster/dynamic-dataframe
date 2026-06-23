@@ -56,22 +56,24 @@ def process_stockLedger(path: Path):
         16: s.noname_4, #? Trash col ...
         18: s.end
         }
-
-    if path.suffix == '.xls':
-        # NOTE logic gốc chỉ xử lý xls
-        RAW_LEDGER  = pd.read_excel(
-            path,
-            usecols = COL_MAP.keys(),
-            names   = COL_MAP.values()
-            ).convert_dtypes()
-    elif path.suffix == '.csv': # Mở rộng cho việc đọc dummy
-        RAW_LEDGER  = pd.read_csv(
-            path,
-            header  = 0,
-            usecols = list(COL_MAP.keys())
-            ).convert_dtypes()
+    if isinstance(path, pd.DataFrame):
+        RAW_LEDGER = path.iloc[:, list(COL_MAP)]
         RAW_LEDGER.columns = list(COL_MAP.values())
-    
+    else:
+        if path.suffix == '.xls':
+            RAW_LEDGER  = pd.read_excel(
+                path,
+                usecols = COL_MAP.keys(),
+                names   = COL_MAP.values()
+                ).convert_dtypes()
+        elif path.suffix == '.csv':
+            RAW_LEDGER  = pd.read_csv(
+                path,
+                header  = 0,
+                usecols = list(COL_MAP.keys())
+                ).convert_dtypes()
+            RAW_LEDGER.columns = list(COL_MAP.values())
+        
     RAW_cols = RAW_LEDGER.columns
     
     #? Tạo 1 dòng buffer
