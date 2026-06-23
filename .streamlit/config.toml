@@ -6,7 +6,7 @@ font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;
 baseRadius = "12px"
 primaryColor = "#5A94E8"
 textColor = "#49618D"
-base = "dark"
+base = "light"
 
 backgroundColor = "white"
 secondaryBackgroundColor = "#ddefff"

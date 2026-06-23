@@ -195,124 +195,85 @@ def sidebar_signature():
     """
     ### Đi cùng `sidebar_options()`
     """
-    st.space('xlarge')
-    # st.html("""
-    # <style>
-    # @keyframes complex-collision {
-    #     0%  { transform: translateX(-150px) rotate(-90deg) scale(1.0);
-    #         animation-timing-function: linear;}                             /* Phi ra */
-    #     10%  { transform: translateX(40px)  rotate(20deg)  scale(1.0)}      /* Crash */
-    #     15% { transform: translateX(35px)   scale(0.5, 1.5)}                /* Nhún */
-    #     25% { transform: translateX(20px)   scale(1.3, 1.0)}                /* Re-bounce */
-    #     30% { transform: translateX(0px)    scale(1.0)}                     /* Back to Normal*/
-    #     40% { transform: translateX(0px)    scale(1.2)}                     /* To ra*/
-    #     50% { transform: translateX(0px)    scale(1.0, 0.65)}               /* Lấy đà*/  
-    #     57% { transform: translateY(-100px) rotate(-330deg) scale(1)}       /* Jump + Flip*/
-    #     70% { transform: translateY(-90px)  rotate(0deg) scale(0.85, 1)}    /* Hover*/   
-    #     80% { transform: translateX(0px)    rotate(30deg)}                  /* Landing */
-    #     90% { transform: translateX(0px)}                                   /* Nghỉ */
-    #     100% { transform: translateX(300px) rotate(-90deg) scale(1);
-    #         opacity: 1;
-    #         animation-timing-function: linear;}
-    # }
-    # .animated-icon {
-    #     display: inline-block;
-    #     font-size: 42px;
-    #     line-height: 1;
-    #     transform-origin: center;
-    #     /* Dùng 'linear' cho đoạn lao vào và 'ease-out' cho đoạn nhún để cảm giác vật lý thật nhất */
-    #     animation: complex-collision 5s infinite ease-out;
-    # }
-    # </style>
-    # """) 
-    # st.html("""
-    #     <div id="dynamic-logo-container" style="margin-top: 35px; padding-bottom: 10px;">
-    #         <hr style="margin-top: 0; margin-bottom: 25px; border: none; border-top: 1px solid #485261;">
-            
-    #         <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-    #             <span class="animated-icon">⚡</span>
-                
-    #             <div style="display: flex; flex-direction: column; align-items: flex-start;">
-    #                 <span style="font-weight: 700; color: #FAFAFA; font-family: 'Source Sans Pro', sans-serif; font-size: 24px; line-height: 1.1;">
-    #                     Dynamic
-    #                 </span>
-    #                 <span style="font-weight: 700; color: #5A94E8; font-family: 'Source Sans Pro', sans-serif; font-size: 24px; line-height: 1.1; margin-left: 25px; margin-top: 2px;">
-    #                     DataFrame
-    #                 </span>
-    #             </div>
-    #         </div>
-            
-    #         <div style="text-align: center; margin-top: 18px;">
-    #             <p style="font-size: 11px; color: #808495; font-style: italic; margin: 0; letter-spacing: 0.6px;">
-    #                 Crafted by Tran Anh Hieu
-    #             </p>
-    #         </div>
-    #     </div>
-    # """)
-
+    st.space('xxlarge')
     st.html("""
     <style>
         @keyframes complex-collision {
         0%  { transform: translateX(-150px) rotate(-90deg) scale(1.0);
             animation-timing-function: linear;}                             /* Phi ra */
-        10%  { transform: translateX(28px)  rotate(20deg)  scale(1.0)}      /* Crash */
-        15% { transform: translateX(18px)   scale(0.5, 1.5)}                /* Nhún */
-        25% { transform: translateX(8px)    scale(1.3, 1.0)}                /* Re-bounce */
-        30% { transform: translateX(0px)    scale(1.0)}                     /* Back to Normal*/
-        40% { transform: translateX(0px)    scale(1.2)}                     /* To ra*/
-        50% { transform: translateX(0px)    scale(1.0, 0.65)}               /* Lấy đà*/  
-        55% { transform: translateY(-50px) rotate(-330deg) scale(1)}        /* Jump + Flip*/
-        60% { transform: translateY(-40px)  rotate(0deg) scale(0.85, 1)}    /* Hover*/   
-        75% { transform: translateX(0px)    rotate(30deg)}                  /* Landing */
-        85% { transform: translateX(0px)}                                   /* Nghỉ */
+        6%  { transform: translateX(28px)   rotate(20deg)  scale(1.0)}      /* Crash */
+        10% { transform: translateX(18px)   scale(0.5, 1.5)}                /* Nhún */
+        15% { transform: translateX(8px)    scale(1.3, 1.0)}                /* Re-bounce */
+        20% { transform: translateX(0px)    scale(1.0)}                     /* Back to Normal*/
+        30% { transform: translateY(5px)    rotate(-5deg)}                  /* stay */
+            
+        34% { transform: translateY(-20px)  rotate(5deg)}                   /* small jump */
+        40% { transform: translateX(0px)    rotate(-8deg)}
+        46% { transform: translateX(0px)}
+        50% { transform: translateY(-15px)  rotate(-7deg)}                  /* small jump */
+        55% { transform: translateX(0px)    rotate(5deg)}
+        70% { transform: translateX(0px)}
+            
+        75% { transform: translateX(0px)    scale(1.1)}                     /* To ra*/
+        80% { transform: translateY(10px)   scale(1.0, 0.65)}               /* Lấy đà*/  
+        84% { transform: translateY(-60px)  rotate(-330deg) scale(1);       /* Jump + Flip*/
+            animation-timing-function: ease-out;}
+        90% { transform: translateX(0px)    rotate(30deg);                  /* Landing */
+            animation-timing-function: ease-in;}
+        93% { transform: translateX(0px)}                                   /* Nghỉ */
         100% { transform: translateX(300px) rotate(-90deg) scale(1);
             opacity: 1;
             animation-timing-function: linear;}
         }
 
-        @keyframes toggle-icon-1 { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
-        @keyframes toggle-icon-2 { 0%, 50% { opacity: 0; } 51%, 100% { opacity: 1; } }
+        @keyframes toggle-icon-1 {
+            0%, 84% { opacity: 1; } 
+            85%, 100% { opacity: 0; } 
+        }
+        @keyframes toggle-icon-2 {
+            0%, 84% { opacity: 0; }
+            85%, 100% { opacity: 1; } 
+        }
 
         .animated-icon {
-            position: absolute; /* Quan trọng: Đè 2 icon lên nhau */
+            position: absolute; /* Đè 2 icon lên nhau */
             top: 0; left: 0;
             display: inline-block;
             font-size: 42px;
             line-height: 1;
             transform-origin: center;
-            animation: complex-collision 5s infinite ease-out;
         }
         
         /* Gán toggle animation cho từng icon */
-        .icon-1 { animation: complex-collision 5s infinite ease-out, toggle-icon-1 10s infinite; }
-        .icon-2 { animation: complex-collision 5s infinite ease-out, toggle-icon-2 10s infinite; }
+        .icon-1 { animation: complex-collision 10s infinite ease-out, toggle-icon-1 10s infinite; }
+        .icon-2 { animation: complex-collision 10s infinite ease-out, toggle-icon-2 10s infinite; }
     </style>
     """) 
     st.html("""
-    <div id="dynamic-logo-container" style="margin-top: 35px; padding-bottom: 10px;">
-        <hr style="margin-top: 0; margin-bottom: 25px; border: none; border-top: 1px solid #485261;">
-        
-        <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-            <div style="position: relative; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;">
-                <span class="animated-icon icon-1">⚡</span>
-                <span class="animated-icon icon-2">💡</span>
+    <div style="overflow: hidden; width: 100%;">
+        <div id="dynamic-logo-container" style="margin-top: 50px; padding-bottom: 10px;">
+            
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <div style="position: relative; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;">
+                    <span class="animated-icon icon-1">⚡</span>
+                    <span class="animated-icon icon-2">💡</span>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                    <span style="font-weight: 700; color: #FAFAFA; font-family: 'Source Sans Pro', sans-serif; font-size: 24px; line-height: 1.1;">
+                        Dynamic
+                    </span>
+                    <span style="font-weight: 700; color: #5A94E8; font-family: 'Source Sans Pro', sans-serif; font-size: 24px; line-height: 1.1; margin-left: 25px; margin-top: 2px;">
+                        DataFrame
+                    </span>
+                </div>
             </div>
             
-            <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                <span style="font-weight: 700; color: #FAFAFA; font-family: 'Source Sans Pro', sans-serif; font-size: 24px; line-height: 1.1;">
-                    Dynamic
-                </span>
-                <span style="font-weight: 700; color: #5A94E8; font-family: 'Source Sans Pro', sans-serif; font-size: 24px; line-height: 1.1; margin-left: 25px; margin-top: 2px;">
-                    DataFrame
-                </span>
+            <div style="text-align: center; margin-top: 18px;">
+                <p style="font-size: 11px; color: #808495; font-style: italic; margin: 0; letter-spacing: 0.6px;">
+                    Crafted by Tran Anh Hieu
+                </p>
             </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 18px;">
-            <p style="font-size: 11px; color: #808495; font-style: italic; margin: 0; letter-spacing: 0.6px;">
-                Crafted by Tran Anh Hieu
-            </p>
         </div>
     </div>
     """)
-
