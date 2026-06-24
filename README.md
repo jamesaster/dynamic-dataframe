@@ -12,13 +12,13 @@ Dự án tái cấu trúc dữ liệu bán lẻ rời rạc thành một bộ m�
 
 > **"Điều phối luồng dữ liệu để giải quyết triệt để các bài toán vận hành."**
 > 
-> Tôi từng cảm thấy bế tắc khi phải tương tác với các DataFrame khô khan của Pandas/Numpy – nơi thiếu hẳn sự phản hồi trực quan cần thiết. Thay vì chấp nhận, tôi kết hợp Streamlit và ECharts để hiện thực hóa quy trình vận hành. Tôi không chấp nhận những biểu đồ mặc định; mỗi tham số, mỗi chuyển động đều được tôi tinh chỉnh kỹ lưỡng cho đến khi khớp hoàn hảo với tư duy quản trị. Đây không đơn thuần là công cụ trực quan hóa, mà là thành quả của việc cá nhân hóa trải nghiệm, biến dữ liệu thành lời giải trực diện cho những bài toán vận hành tôi từng đối mặt.
+> Khi các DataFrame khô khan không còn đủ để truyền tải insight, tôi quyết định tạo ra một 'hệ điều hành' riêng cho mình bằng Streamlit và ECharts. Tôi muốn mỗi biểu đồ phải có một câu chuyện, một tiếng nói phản ánh thực trạng vận hành. Mỗi chuyển động trong app đều được tinh chỉnh để khớp hoàn hảo với tư duy quản trị mà tôi tích lũy được. Đây không chỉ là công cụ, mà là thành quả của việc cá nhân hóa trải nghiệm dữ liệu, biến những con số vô tri thành lời giải trực diện cho bài toán vận hành.
 
 ---
 
 ## 📌 Business Case
 
-Vấn đề của các hệ thống quản lý cũ không nằm ở công nghệ, mà là "bức tường ngăn cách" giữa dòng chảy bán hàng và luân chuyển kho vận. Sự rời rạc này tạo ra những điểm mù khiến vận hành trở nên bị động:
+Vấn đề của các hệ thống quản lý cũ không nằm ở công nghệ, mà là 'rào cản ngăn cách' giữa dòng chảy bán hàng và luân chuyển kho vận. Sự rời rạc này tạo ra những điểm mù khiến vận hành trở nên bị động:
 
 * **Dữ liệu phân mảnh:** `File bán` và `File tồn hệ thống` tồn tại như hai thực thể tách biệt, đầy rẫy nhiễu. Thay vì ghép nối thủ công, tôi đào sâu vào cấu trúc dữ liệu để các mối tương quan tự lộ diện, chuyển hóa dữ liệu thô thành một mặt phẳng thông tin duy nhất.
 * **Đứt gãy tầm nhìn:** Sự thiếu liên kết khiến tốc độ tiêu thụ theo từng SKU trở nên mờ mịt. Quyết định nhập hàng thường bị kẹt trong cảm tính thay vì bám sát thực tế sàn bán.
