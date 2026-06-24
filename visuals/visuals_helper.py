@@ -59,13 +59,13 @@ def get_fade_color(hex_or_rgba, opacity=0.5):
     hex_color = color_str.lstrip('#')
     rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     return f"rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, {opacity})"
-def styled_header(text, subtext=''):
+def styled_header(text, subtext = '', h :int = 3):
     style_main = "text-align: left; color: rgba(52, 67, 109, 0.95);"
-    style_sub = "margin-left: 10px; font-weight: 400; color: rgba(52, 67, 109, 0.65); font-size: 27px;"
+    style_sub  = "margin-left: 10px; font-weight: 400; color: rgba(52, 67, 109, 0.65); font-size: 27px;"
     html = f"""
-            <h3 style='{style_main}'>
+            <h{h} style='{style_main}'>
                 {text} <span style='{style_sub}'>{subtext}</span>
-            </h3>
+            </h{h}>
             """
     return st.markdown(html, unsafe_allow_html=True)
 def format_number(n):

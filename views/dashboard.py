@@ -220,7 +220,13 @@ def main(
     #region  4.   DISPLAY
 
     #region #! 1. METRICs
-    styled_header('Key Performance Indicators')
+    styled_header('Key Performance Indicators', h=2)
+    st.markdown("""
+    <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
+        This is a <strong>retail operations dashboard</strong>, built for high-fidelity insights.<br>
+        Data is synthesized from real-world patterns, ensuring the business logic remains strictly authentic.
+    </div> """, unsafe_allow_html=True)
+
     metric_config = get_metrics_config(
         tf_distrib    = traffic_distrib,
         atv_distrib   = atv_distrib,
@@ -239,11 +245,7 @@ def main(
 
     four_metrics(kpis = kpis, cols_scale=[1, 1, 1, 1])
     st.space('xxsmall')
-    header_style = (
-    "style='text-align: left; color: #34436D; font-weight: 750; "
-    "letter-spacing: -0.75px; position: absolute; height: 0; margin-top: -50px;'"
-    )
-    # st.markdown(f"<h2 {header_style}>Let's deep dive!🚀</h2>", unsafe_allow_html=True)
+
     #endregion
 
     #region #? 2. Hero + Explore [7, 3]
