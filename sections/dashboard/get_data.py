@@ -44,8 +44,7 @@ def load_sales_sheet(
             
         return pd.DataFrame(data = list_of_records[1:], columns = colMap.values()).convert_dtypes()
         
-    except Exception as e:
-        st.error(f"Lỗi: {e}")
+    except:
         return pd.DataFrame()
     
 @st.cache_data(show_spinner='Fetching data from Google Drive, this may take a few seconds...')
