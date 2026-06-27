@@ -9,7 +9,7 @@ def stage_0(df: pd.DataFrame):
     'date_col'    : r'(?:^|_)(?:date|ngay|day|created|updated)(?:_|$)',
     'time_col'    : r'(?:^|_)(?:time|gio|hour|minute|second|timestamp)(?:_|$)',
     'price'       : r'(?:^|_)(?:price|pice|unit_price|unitprice|đơn_giá|đơn_gia|gia|giá|gia_ban|giá_bán|prc)(?:_|$)',
-    'numeric_col' : r'(?:^|_)(?:cash|card|vnpay|cost|qty|quantity|sl|disc|discount|percent|fee|rate|tax|shipping)(?:_|$)',
+    'numeric_col' : r'(?:^|_)(?:cash|card|vnpay|payoo|trade_in|banking|mkt_promo|cost|qty|quantity|sl|disc|discount|percent|fee|rate|tax|shipping)(?:_|$)',
     'revenue'     : (r'(?:^|_)(?:revenue|total|total_amount|total_revenue|thanh_tien|thanhtien|'
                     r'doanh_thu|doanhthu|tổng_tiền|tong_tien|tongtien|grand_total|subtotal|tt|'
                     r'(?<!disc_)(?<!tax_)(?<!fee_)(?<!paid_)(?<!ship_)amount)(?:_|$)' ),
@@ -84,36 +84,43 @@ def stage_1(output_stage_0)-> dict:
     print('\n')
     return results
 def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
-    df_new = pd.DataFrame()
-    
+    df_new = pd.DataFrame(index=df.index)
+
     for key, cols in final_results.items():
         if not cols:
             continue
-        # Loop through 
+
         if key == 'time_col':
             for c in cols:
                 df_new[c] = time_format(df, c)
-        # Vectorized on multiple columns  
         if key == 'date_col':
             df_new[cols] = df[cols]      
+        # Update 28-06-26: Đã pd.to_numeric[price, revenue, numeric_col] trước khi vào hàm
         if key == 'price':
-            df_new[cols] = df[cols].apply(pd.to_numeric, errors='coerce')
+            df_new[cols] = df[cols]
         if key == 'revenue':
-            df_new[cols] = df[cols].apply(pd.to_numeric, errors='coerce')
+            df_new[cols] = df[cols]
         if key == 'numeric_col':
-            df_new[cols] = df[cols].apply(pd.to_numeric, errors='coerce').fillna(0)
+            df_new[cols] = df[cols].fillna(0)
         if key == 'boolean_col':
             df_new[cols] = df[cols].astype('boolean')
         if key == 'category_col':
-            df_new[cols] = df[cols].fillna('uncategorized').astype('category')
-        if key in ['phone_col', 'string_col']:
-            df_new[cols] = df[cols].astype('string').fillna('unknown')
+            continue
+
+    str_keys = ['string_col', 'phone_col', 'category_col']
+    str_cols = sum([final_results.get(key, []) for key in str_keys], [])
+    if str_cols:
+        df_new[str_cols]  = df[str_cols].astype('string').apply(lambda x: x.str.strip())
+        empty_string_mask = df_new[str_cols] == ''
+        df_new[str_cols]  = df_new[str_cols].mask(empty_string_mask, '-')
 
     try:
         df_new = df_new[df.columns]
-    except KeyError as e:
+    except:
         missing_cols = set(df.columns) - set(df_new.columns)
-        print(f"🫠 Execution > Thiếu cột: {missing_cols}")
+        print(f'🫠 Execution > Thiếu cột: {missing_cols}')
+        if len(missing_cols) == 1 and 'fill_date' in missing_cols:
+            print(f'🤷‍♂️ Kệ {missing_cols}')
         
         existing_cols = [c for c in df.columns if c in df_new.columns]
         df_new = df_new[existing_cols]
