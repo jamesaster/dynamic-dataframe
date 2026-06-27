@@ -31,14 +31,14 @@ def get_df_target(df_stage_1: pd.DataFrame):
         for i in range(1, 13, 1) 
         for val in [rng.uniform(-0.05, 0.15)]
     }
-    seasonal_bias = 1 + pd.to_datetime(df_target[c.month]).dt.month.map(seasonal_bias_map)
+    seasonal_bias = 1 + pd.to_datetime(df_target[c.month], format='%m-%Y', errors='coerce').dt.month.map(seasonal_bias_map)
     df_target['month_target'] = (
         np.floor(abs(
         df_target['revenue']
         * target_factor
         * seasonal_bias
         ) // 100_000_000) * 100_000_000)
-    days_of_target = pd.to_datetime(df_target[c.month]).dt.days_in_month
+    days_of_target = pd.to_datetime(df_target[c.month], format='%m-%Y', errors='coerce').dt.days_in_month
     df_target['date_target'] = df_target['month_target'] / days_of_target
     df_target['week_target'] = df_target['date_target'] * 7
 
@@ -50,8 +50,8 @@ def get_df_invoice(period_double: pd.DataFrame, period_anchor: pd.Timestamp):
     df_invoice = period_double.groupby(invoice_agg_cols, as_index=False, observed=True).agg({
         c.qty       : 'sum',
         c.revenue   : 'sum',
-        c.pay_card  : 'sum',
-        c.pay_qr    : 'sum'
+        # c.pay_card  : 'sum',
+        # c.pay_qr    : 'sum'
     })
     df_invoice['order_type'] = df_invoice[c.qty].map({1: 'single'}).fillna('combo').mask(df_invoice[c.qty] < 1)
     df_inv_masked = df_invoice.loc[df_invoice['date'] >= period_anchor]
