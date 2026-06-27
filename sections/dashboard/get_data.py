@@ -4,9 +4,10 @@ import streamlit as st
 import pandas as pd
 import duckdb
 from concurrent.futures import ThreadPoolExecutor
-from src.columns import colName as c, stockCol as s
+from src.columns import colName as c, stockCol as s, colRaw_mapping as colMap
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+
 SECRET_KEY      = st.secrets['gcs_connections']
 FOLDER_ID       = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
 FILE_LIST       = [
@@ -20,6 +21,33 @@ FILE_LIST       = [
     'DEMO_TRAFFIC.parquet'
 ]
 
+
+@st.cache_data(ttl=43200, show_spinner='Fetching data from Google Sheets...')
+def load_sales_sheet(
+    sheet_id  : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
+    range_name: str = 'combine!A:X'
+) -> pd.DataFrame:
+    try:
+        secret_key  = SECRET_KEY
+        credentials = service_account.Credentials.from_service_account_info(secret_key)
+        service     = build('sheets', 'v4', credentials=credentials)
+        
+        sheet_object = service.spreadsheets().values().get(
+            spreadsheetId = sheet_id, 
+            range = range_name
+        ).execute()
+        
+        list_of_records = sheet_object.get('values', [])
+        
+        if not list_of_records:
+            return pd.DataFrame()
+            
+        return pd.DataFrame(data = list_of_records[1:], columns = colMap.values()).convert_dtypes()
+        
+    except Exception as e:
+        st.error(f"Lỗi: {e}")
+        return pd.DataFrame()
+    
 @st.cache_data(show_spinner='Fetching data from Google Drive, this may take a few seconds...')
 def load_all_from_drive(
     folder_id: str  = FOLDER_ID, 
