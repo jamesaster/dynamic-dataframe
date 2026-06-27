@@ -62,7 +62,7 @@ def cal_revenue(df: pd.DataFrame, payment_cols: list=None, disc_cols: list=None,
             
             print(f"DEBUG [cal_revenue] p_q.mean= {p_q.mean()}")
 
-            pq_mask = (rev_alternate.isna() | rev_alternate == 0)
+            pq_mask = (rev_alternate.isna()) | (rev_alternate == 0)
             if not payment_cols:
                 pq_mask[:] = True
 
