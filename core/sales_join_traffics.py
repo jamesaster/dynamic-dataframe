@@ -3,32 +3,32 @@ import pandas as pd
 import numpy as np  
 import duckdb
 
-def join_sales_traffic(df: any, traffic_path: any) -> pd.DataFrame:
-    """### Join sales với traffic bằng DuckDB
+def join_sales_traffic(df: any, traffic_path: any, demo: bool = True) -> pd.DataFrame:
+    """
+    ### Join sales với traffic bằng DuckDB
     - df: có thể là đường dẫn (str/Path) hoặc DataFrame
     - traffic_path: có thể là đường dẫn (str/Path) hoặc DataFrame
     """
-    # 1. Xử lý linh hoạt cho đầu vào df (Sales)
+
     if isinstance(df, pd.DataFrame):
-        df_input = "df"          # DuckDB tự quét biến local 'df' trong RAM
+        df_input = "df"
     elif isinstance(df, (str, Path)):
-        df_input = f"'{df}'"     # Bọc nháy đơn nếu là đường dẫn file
+        df_input = f"'{df}'"
     else:
         raise TypeError("df must be either a string path or a pandas DataFrame")
 
-    # 2. Xử lý linh hoạt cho đầu vào traffic_path (Traffic) 👇 CHỖ NÀY CỨU BỒ ĐÂY
     if isinstance(traffic_path, pd.DataFrame):
-        traffic_input = "traffic_path" # DuckDB tự quét biến local 'traffic_path' trong RAM
+        traffic_input = "traffic_path"
     elif isinstance(traffic_path, (str, Path)):
-        traffic_input = f"'{traffic_path}'" # Bọc nháy đơn nếu là đường dẫn file
+        traffic_input = f"'{traffic_path}'"
     else:
         raise TypeError("traffic_path must be either a string path or a pandas DataFrame")
 
-    # 3. Ráp vào câu Query (Bỏ hoàn toàn dấu nháy đơn cứng ở câu SQL cũ)
+    _traffic = 'new_Traffic' if demo else 'Traffic'
     query = f"""
         SELECT 
-            * EXCLUDE (Period, new_Traffic, Event_name),
-            new_Traffic as date_traffic,
+            * EXCLUDE (Period, {_traffic}, Event_name),
+            {_traffic} as date_traffic,
             Event_name as event_name 
         FROM {df_input} s
         LEFT JOIN {traffic_input} t
