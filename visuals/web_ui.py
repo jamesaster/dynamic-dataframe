@@ -69,8 +69,6 @@ def _welcome_logic_(context='Bấm tiếp tục để nhận quà.', button_text
         st.balloons()
         st.session_state.balloon = False
 
-
-@st.fragment # NOTE side_bar_1()
 def sidebar_date(title: str, date_options: list, min_date=None, max_date=None):
     """
     ### Render filter for `Date` filtering only.
@@ -80,51 +78,45 @@ def sidebar_date(title: str, date_options: list, min_date=None, max_date=None):
     """
 
     st.title(title)
-
     with st.container(border=True, width='content'):
         st.caption(f":material/event_available: Available: **{min_date.strftime('%b %Y')}** :material/arrow_right_alt: **{max_date.strftime('%b %Y')}**")
     st.markdown(':material/history: **How far back should we go?**', help='Reference point: Today or the latest available data.')
     
-    # 1. Select Period
-    period = st.selectbox(
-        label='***\\* Period***',
-        options=date_options,
-        index=0,
-        key='period'
+    selected_key = 'period_selected'
+    
+    if SS.get('period') == st.secrets.env.start_lab:
+        SS.is_james  = True
+        st.rerun(scope = 'app')
+    elif SS.get('period') == st.secrets.env.end_lab:
+        SS.is_james  = False
+        st.rerun(scope = 'app')
+
+    if not SS.get('period') in date_options:
+        SS.period = nor_period = date_options[0]
+    
+    nor_period  = st.selectbox(
+        label   = '***\\* Period***',
+        options = date_options,
+        index   = 0,
+        key     = 'period',
+        accept_new_options = True
     )
 
     st.markdown('')
 
-    custom_period = {}
-
-    # 2. Logic for 'Custom' option
-    if period == 'Custom':
+    if nor_period == 'Custom':
         start_col, end_col = st.columns(2)
-        
         with start_col:
             from_date = st.date_input(
                 'Start date', value = max_date - pd.DateOffset(days=6), min_value=min_date, max_value=max_date, key='From', format="DD-MM-YYYY",)
-
         with end_col:
             end_date = st.date_input(
                 'End date', value=max_date, min_value=from_date, max_value=max_date, key='End', format="DD-MM-YYYY",)
+        st.divider()
 
-        st.markdown('---')
-
-        # Pack into dict for Stage 1 compatibility
-        custom_period = {'Custom': {'From': from_date, 'End': end_date}}
-    
-    key_exist = 'period_selected' in SS
-
-    if period != 'Custom':
-        if not key_exist or (SS.period != SS.period_selected):
-            SS.period_selected = SS.period
-            st.rerun(scope='app')
+        SS[selected_key] = {'Custom': {'From': from_date, 'End': end_date}}
     else:
-        if not key_exist or (SS.period_selected != custom_period):
-            SS.period_selected = custom_period
-            print('RERUN_CUSTOM')
-            st.rerun(scope='app')
+        SS[selected_key] = nor_period
 
 @st.fragment # NOTE side_bar_2()
 def sidebar_options(stage_2_dict: dict = None):
