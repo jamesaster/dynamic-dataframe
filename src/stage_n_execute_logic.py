@@ -9,7 +9,7 @@ def stage_0(df: pd.DataFrame):
     'date_col'    : r'(?:^|_)(?:date|ngay|day|created|updated)(?:_|$)',
     'time_col'    : r'(?:^|_)(?:time|gio|hour|minute|second|timestamp)(?:_|$)',
     'price'       : r'(?:^|_)(?:price|pice|unit_price|unitprice|đơn_giá|đơn_gia|gia|giá|gia_ban|giá_bán|prc)(?:_|$)',
-    'numeric_col' : r'(?:^|_)(?:cost|qty|quantity|sl|disc|discount|percent|fee|rate|tax|shipping)(?:_|$)',
+    'numeric_col' : r'(?:^|_)(?:cash|card|vnpay|cost|qty|quantity|sl|disc|discount|percent|fee|rate|tax|shipping)(?:_|$)',
     'revenue'     : (r'(?:^|_)(?:revenue|total|total_amount|total_revenue|thanh_tien|thanhtien|'
                     r'doanh_thu|doanhthu|tổng_tiền|tong_tien|tongtien|grand_total|subtotal|tt|'
                     r'(?<!disc_)(?<!tax_)(?<!fee_)(?<!paid_)(?<!ship_)amount)(?:_|$)' ),
