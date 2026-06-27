@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.columns import colName as c
+from src.columns import colName as c, colFormat as f
 from visuals.visuals_helper import clear_attrs
 from visuals import get_dynamic_mask
 
@@ -31,14 +31,14 @@ def get_df_target(df_stage_1: pd.DataFrame):
         for i in range(1, 13, 1) 
         for val in [rng.uniform(-0.05, 0.15)]
     }
-    seasonal_bias = 1 + pd.to_datetime(df_target[c.month], format='%m-%Y', errors='coerce').dt.month.map(seasonal_bias_map)
+    seasonal_bias = 1 + pd.to_datetime(df_target[c.month], format=f.month, errors='coerce').dt.month.map(seasonal_bias_map)
     df_target['month_target'] = (
         np.floor(abs(
         df_target['revenue']
         * target_factor
         * seasonal_bias
         ) // 100_000_000) * 100_000_000)
-    days_of_target = pd.to_datetime(df_target[c.month], format='%m-%Y', errors='coerce').dt.days_in_month
+    days_of_target = pd.to_datetime(df_target[c.month], format=f.month, errors='coerce').dt.days_in_month
     df_target['date_target'] = df_target['month_target'] / days_of_target
     df_target['week_target'] = df_target['date_target'] * 7
 

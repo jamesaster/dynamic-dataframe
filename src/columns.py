@@ -1,10 +1,13 @@
-
 def get_columns(df):    
     cols = df.columns
     max_len = max(len(col) for col in cols)
     print("class colName:")
     for col in cols:
         print(f"    {col:<{max_len}} = '{col}'")
+
+
+class colFormat:
+    month = '%Y-%m'
 
 class colRaw:
     time           = 'time'
@@ -68,7 +71,6 @@ colRaw_mapping = {
     23: colRaw.time,
     24: colRaw.subcat
 }
-
 
 class colName:
     time           = 'time'

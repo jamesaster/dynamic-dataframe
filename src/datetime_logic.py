@@ -93,8 +93,8 @@ def recover_date(df: pd.DataFrame, date_raw: str, anchor_col_name: str=None)-> l
     list_if_error = []
 
     if date_raw:
-        d1 = pd.to_datetime(df[date_raw], format='%Y-%m-%d', errors='coerce')
         d2 = pd.to_datetime(df[date_raw], format='%d-%m-%Y', errors='coerce')
+        d1 = pd.to_datetime(df[date_raw], format='%Y-%m-%d', errors='coerce')
         df['fill_date'] = d1.fillna(d2)
 
 #* Nếu có Anchor_col > ffill, bfill trước.
@@ -116,8 +116,9 @@ def recover_date(df: pd.DataFrame, date_raw: str, anchor_col_name: str=None)-> l
 # ---- Nhóm Time -----
 def time_format(df, time_col_name)-> pd.Series:      
     if time_col_name:
-        t1 = pd.to_datetime(df[time_col_name], format='%I:%M%p' , errors='coerce')
-        t2 = pd.to_datetime(df[time_col_name], format='%H:%M:%S', errors='coerce') 
-        t3 = pd.to_datetime(df[time_col_name], format='%H:%M'   , errors='coerce') 
+        clean_time = df[time_col_name].astype(str).str.strip()
+        t1 = pd.to_datetime(clean_time, format='%I:%M%p' , errors='coerce')
+        t2 = pd.to_datetime(clean_time, format='%H:%M:%S', errors='coerce') 
+        t3 = pd.to_datetime(clean_time, format='%H:%M'   , errors='coerce') 
 
     return t1.fillna(t2).fillna(t3)

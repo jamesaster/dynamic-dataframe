@@ -1,7 +1,7 @@
 from streamlit_echarts import st_echarts, JsCode
 from src import get_specific_inventory_as_of
 from typing import Callable, Literal, Union
-from src.columns import colName as c, stockCol as s
+from src.columns import colName as c, stockCol as s, colFormat as f
 from src.stockledger import get_inventory_value
 from .visuals_helper import *
 import streamlit as st
@@ -2835,7 +2835,7 @@ def pivot_bar_data(
     times    = {
         c.date      : lambda x: x.dt.strftime('%a %d\n%b'),
         c.week      : lambda x: x,
-        c.month     : lambda x: pd.to_datetime(x, format='%m-%Y', errors='coerce').dt.strftime('%b. %y')
+        c.month     : lambda x: pd.to_datetime(x, format=f.month, errors='coerce').dt.strftime('%b. %y')
     }
     pivot[period_mode] = times[period_mode](pivot[period_mode])
     headers  = pivot.columns.to_list()
