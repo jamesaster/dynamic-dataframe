@@ -39,7 +39,7 @@ def get_memory_usage(df):
         return f"{size_in_bytes / (1024**2):.2f} MB"
 #endregion
 
-data = load_all_from_drive()
+data = load_files_from_drive()
 raw_ledger    = data.get('DEMO_stock_ledger_dummy.csv', pd.DataFrame())
 addition_info = data.get('DEMO_price_cat_ledger.csv', pd.DataFrame())
 demo_anonym   = data.get('DEMO_Anonym_Price.csv', pd.DataFrame())
