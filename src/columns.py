@@ -41,36 +41,6 @@ class colRaw:
     cus_email      = 'email'
     traffic        = 'date_traffic'
     event_name     = 'event_name'
-# colRaw_mapping = {
-#     0: colRaw.date,
-#     1: colRaw.invoice,
-#     2: colRaw.staff,
-#     3: colRaw.ean,
-#     5: colRaw.cat,
-#     6: colRaw.imei_sn,
-#     7: colRaw.sku,
-#     8: colRaw.prod_name,
-#     9: colRaw.price,
-#     10: colRaw.qty,
-#     # 11: "ins_stt", Ignore
-#     # 12: "ins_fee", Ignore
-#     13: colRaw.disc_pct,
-#     14: colRaw.disc_amt,
-#     15: colRaw.revenue,
-#     16: colRaw.cash,
-#     17: colRaw.card,
-#     18: colRaw.payoo,
-#     19: colRaw.banking,
-#     20: colRaw.mkt,
-#     21: colRaw.vnpay,
-#     22: colRaw.trade_in,
-#     # 23: "vat", Ignore
-#     24: colRaw.cus_email,
-#     25: colRaw.cus_name,
-#     26: colRaw.cus_id,
-#     # 27: "note", Ignore
-#     28: colRaw.time
-# }
 colRaw_mapping = {
     0: colRaw.date,
     1: colRaw.invoice,
@@ -95,7 +65,8 @@ colRaw_mapping = {
     20: colRaw.cus_email,
     21: colRaw.cus_name,
     22: colRaw.cus_id,
-    23: colRaw.time
+    23: colRaw.time,
+    24: colRaw.subcat
 }
 
 
