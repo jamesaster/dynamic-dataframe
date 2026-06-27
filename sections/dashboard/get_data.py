@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 import duckdb
 from concurrent.futures import ThreadPoolExecutor
-from src.columns import colName as c, stockCol as s, colRaw_mapping as colMap
+from src.columns import colName as c, colRaw_mapping as colMap, colFormat as f
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
@@ -25,7 +25,7 @@ FILE_LIST       = [
 @st.cache_data(ttl=43200, show_spinner='Fetching data from Google Sheets...')
 def load_sales_sheet(
     sheet_id  : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
-    range_name: str = 'combine!A:X'
+    range_name: str = 'combine!A:Y'
 ) -> pd.DataFrame:
     try:
         secret_key  = SECRET_KEY
@@ -41,14 +41,18 @@ def load_sales_sheet(
         
         if not list_of_records:
             return pd.DataFrame()
-            
-        return pd.DataFrame(data = list_of_records[1:], columns = colMap.values()).convert_dtypes()
         
+        # Đằng nào cũng bị object toàn bộ, clean luôn cho sạch
+        data = pd.DataFrame(data = list_of_records[1:], columns = colMap.values()).astype('string')
+        mask = data.apply(lambda x: x.str.strip(), axis=0) == ''
+        data = data.mask(mask)
+        return data
+    
     except:
         return pd.DataFrame()
     
 @st.cache_data(show_spinner='Fetching data from Google Drive, this may take a few seconds...')
-def load_all_from_drive(
+def load_files_from_drive(
     folder_id: str  = FOLDER_ID, 
     file_list: list = FILE_LIST
     ) -> dict:
@@ -112,7 +116,7 @@ def get_streamlit_data(
         max_date = raw[_date_col].max()
         
         # Tạo cột month_year
-        raw.insert(1, 'month_year', raw[_date_col].dt.strftime('%Y-%m'))
+        raw.insert(1, 'month_year', raw[_date_col].dt.strftime(f.month))
         
         # Tạo cột week: format '25-W36 (01 Sep)'
         monday = raw[_date_col] - pd.to_timedelta(raw[_date_col].dt.weekday, unit='D')
@@ -169,7 +173,7 @@ def get_streamlit_data_from_drive(
     print('get_streamlit_data_from_drive - optimized')
 
     file_list    = [_SALES, _LEDGER, _PRODUCT]
-    all_raw_data = load_all_from_drive()
+    all_raw_data = load_files_from_drive()
     
     for name in file_list:
         if name not in all_raw_data:
@@ -191,7 +195,7 @@ def get_streamlit_data_from_drive(
         max_date = raw[c.date].max()
         
         # Tạo cột month_year
-        raw.insert(1, c.month, raw[c.date].dt.strftime('%Y-%m'))
+        raw.insert(1, c.month, raw[c.date].dt.strftime(f.month))
         
         # Tạo cột week: format '25-W36 (01 Sep)'
         monday = raw[c.date] - pd.to_timedelta(raw[c.date].dt.weekday, unit='D')
