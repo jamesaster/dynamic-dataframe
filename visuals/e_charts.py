@@ -1758,7 +1758,7 @@ def get_month_progress(
         exact_month = month_df[_month].values[0]
         month_target = target_df.loc[target_df[_month] == exact_month, month_targer_col].values[0]
 
-        month_progress = month_df.groupby([_month, _cat], as_index=False)[_rev].sum()
+        month_progress = month_df.groupby([_month, _cat], as_index=False, observed=True)[_rev].sum()
         
         new_idx = month_progress.last_valid_index() + 1
 
@@ -2835,7 +2835,7 @@ def pivot_bar_data(
     times    = {
         c.date      : lambda x: x.dt.strftime('%a %d\n%b'),
         c.week      : lambda x: x,
-        c.month     : lambda x: pd.to_datetime(x).dt.strftime('%b. %y')
+        c.month     : lambda x: pd.to_datetime(x, format='%m-%Y', errors='coerce').dt.strftime('%b. %y')
     }
     pivot[period_mode] = times[period_mode](pivot[period_mode])
     headers  = pivot.columns.to_list()
