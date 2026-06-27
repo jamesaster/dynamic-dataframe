@@ -2,8 +2,8 @@ import textwrap
 import streamlit as st
 from visuals.css_inject import *
 from sections.dashboard.get_data import *
-
-
+SS = st.session_state
+is_james = SS.get('is_james')
 page_title  = 'Dynamic DataFrame'
 data_cached = load_all_from_drive()
 
@@ -14,9 +14,8 @@ st.set_page_config(
     )
 
 
-
-
 # region 0. CSS Inject
+
 
 st.markdown(SIDE_BAR_CSS, unsafe_allow_html=True)
 st.markdown(PAGE_FONT_CSS, unsafe_allow_html=True)
@@ -70,9 +69,12 @@ css_hidden_hero = f"<h6 style='text-align: left; color: rgba(52, 67, 109, 0.55);
 
 # endregion
 
-
 dashboard_page = st.Page('views/dashboard.py', title='Dashboard', icon=':material/analytics:')
-test_page      = st.Page('views/demo.py', title='Data Pipelines', icon=':material/rocket_launch:')
+pipelines_page = st.Page('views/demo.py', title='Data Pipelines', icon=':material/rocket_launch:')
+linear_page    = st.Page('views/linear_regression.py', title='Testing', icon=':material/experiment:')
+page_list      = [dashboard_page, pipelines_page]
+if is_james:
+    page_list.append(linear_page)
 
-pg = st.navigation([dashboard_page, test_page], position='sidebar')
+pg = st.navigation(page_list, position='sidebar', expanded=True)
 pg.run()
