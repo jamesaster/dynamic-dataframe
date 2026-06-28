@@ -1,4 +1,12 @@
 import pandas as pd
+from src.columns import colRaw as r, colFormat as f, colName as c
+
+
+def week_month_year(df: pd.DataFrame):
+    df[c.month] = df[c.date].dt.strftime(f.month)
+    monday = df[c.date] - pd.to_timedelta(df[c.date].dt.weekday, unit='D')
+    df.insert(1, c.week, monday.dt.strftime('%g-W%V') + monday.dt.strftime(' (%d %b)'))
+    return df
 
 # ---- Nhóm Date -----
 def chunks_maker(df: pd.DataFrame, ffilled_bfilled_date: str)-> dict:
@@ -84,34 +92,39 @@ def validate_n_correct_chunks(df: pd.DataFrame, dict_chunks: dict, raw_date: str
     return pending_date_idx
 
 #!  recover_date: main
-def recover_date(df: pd.DataFrame, date_raw: str, anchor_col_name: str=None)-> list:
-    print(f'df.index: {df.index}')
+def recover_date(
+    df      : pd.DataFrame, 
+    _date   : str = r.date, 
+    _anchor : str = None
+)-> list:
+    
+    print(f'[recover_date] index: {df.index}')
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
         print("Warning: Index was not sorted. DataFrame has been sorted automatically.")
 
-    list_if_error = []
+    errors_list = []
 
-    if date_raw:
-        d2 = pd.to_datetime(df[date_raw], format='%d-%m-%Y', errors='coerce')
-        d1 = pd.to_datetime(df[date_raw], format='%Y-%m-%d', errors='coerce')
+    if _date:
+        d2 = pd.to_datetime(df[_date], format='%d-%m-%Y', errors='coerce')
+        d1 = pd.to_datetime(df[_date], format='%Y-%m-%d', errors='coerce')
         df['fill_date'] = d1.fillna(d2)
 
-#* Nếu có Anchor_col > ffill, bfill trước.
-    if anchor_col_name:
-        df['fill_date'] = df.groupby(anchor_col_name)['fill_date'].transform('ffill')
-        df['fill_date'] = df.groupby(anchor_col_name)['fill_date'].transform('bfill')
-        print(f'    Missing date detected, proceed ffill & bffll by anchor "{anchor_col_name}"')
+    # Nếu có Anchor_col > ffill, bfill trước.
+    if _anchor:
+        df['fill_date'] = df.groupby(_anchor)['fill_date'].transform('ffill')
+        df['fill_date'] = df.groupby(_anchor)['fill_date'].transform('bfill')
+        print(f'    Missing date detected, proceed ffill & bffll by anchor "{_anchor}"')
 
     number_of_errors_date = df['fill_date'].isna().sum()
     if number_of_errors_date > 0:   
         the_chunks = chunks_maker(df, 'fill_date')
         if the_chunks:
-            list_if_error = validate_n_correct_chunks(df, the_chunks, date_raw, 'fill_date')
-    if not list_if_error:
-        print(f"    Number of NaT in 'fill_date': {df['fill_date'].isna().sum()}")
-    print('\n')
-    return df['fill_date'], list_if_error
+            errors_list = validate_n_correct_chunks(df, the_chunks, _date, 'fill_date')
+    if not errors_list:
+        print(f"    Number of NaT in 'fill_date': {df['fill_date'].isna().sum()}\n")
+
+    return df['fill_date'], errors_list
 
 # ---- Nhóm Time -----
 def time_format(df, time_col_name)-> pd.Series:      

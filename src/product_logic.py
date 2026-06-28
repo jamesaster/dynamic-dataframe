@@ -86,3 +86,4 @@ def repair_product(sales: pd.DataFrame):
     #endregion
 
     return sales[columns]
+
