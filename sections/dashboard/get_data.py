@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from src.columns import colName as c, colRaw_mapping as colMap, colFormat as f
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+import google.auth.transport.requests
 
 SECRET_KEY      = st.secrets['gcs_connections']
 FOLDER_ID       = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
@@ -21,17 +22,78 @@ FILE_LIST       = [
     'DEMO_TRAFFIC.parquet'
 ]
 
+@st.cache_resource
+def cached_http_session():
+    """
+    ## Khởi tạo đường ống tới Google API (Thread-safe).
+
+    Mục đích:
+    ---------
+    Thay vì để mỗi lần build service, worker phải tạo đường ống mới từ đầu và đập bỏ khi fetch xong.
+    Hàm này sẽ tạo 1 đường ống ổn định đầu tiên và cached vào RAM.
+    Hàm get_connections sẽ dùng build thêm nhánh trực tiếp từ ống chính, tiết kiệm thời gian và tài nguyên.
+
+    Return:
+    -------
+    google.auth.transport.requests.Request: 
+        Một HTTP session object đã được cấu hình sẵn để làm cổng vận chuyển dữ liệu cho Google API Client.
+    """
+    return google.auth.transport.requests.Request()
+def get_google_connections(key = SECRET_KEY):
+    """
+    ## Khởi tạo và cấu hình các dịch vụ kết nối (Google Drive & Sheets) cho từng luồng.
+
+    Mục đích:
+    ---------
+    Sử dụng đường ống chính đã Cached và build thêm các nhánh (v3, v4) để fetch data về máy.
+    Sử dụng .refresh(cached_session) để verify token của cred còn hạn hay không.
+    Nếu cred check với ống thấy token expired thì sẽ dùng ống để xin API cấp lại token (rất nhanh).
+    Trả về:
+    -------
+    dict:
+        - 'drive' : googleapiclient.discovery.Resource (Drive API v3 Client)
+        - 'sheets': googleapiclient.discovery.Resource (Sheets API v4 Client)
+
+    """
+    scopes = [
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/spreadsheets"
+    ]
+    
+    base_credentials = service_account.Credentials.from_service_account_info(key)
+    credentials = base_credentials.with_scopes(scopes)
+    
+    cached_session = cached_http_session()
+    credentials.refresh(cached_session)
+    
+    drive_service = build('drive', 'v3', credentials=credentials)
+    sheets_service = build('sheets', 'v4', credentials=credentials)
+    
+    return {
+        'drive': drive_service,
+        'sheets': sheets_service
+    }
 
 @st.cache_data(ttl=43200, show_spinner='Fetching data from Google Sheets...')
 def load_sales_sheet(
-    sheet_id  : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
-    range_name: str = 'combine!A:Y'
+    sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
+    gid      : int = 0,
+    tab      : str = 'combine',
+    columns  : str = '!A:Y'
 ) -> pd.DataFrame:
+    """
+    ## fetch data from googlesheets using gid_id, fallback with tab_name
+    """
     try:
-        secret_key  = SECRET_KEY
-        credentials = service_account.Credentials.from_service_account_info(secret_key)
-        service     = build('sheets', 'v4', credentials=credentials)
+        connections = get_google_connections()
+        service     = connections['sheets']
+        try:
+            sheets_metadata = service.spreadsheets().get(spreadsheetId = sheet_id).execute()
+            tab = [m['properties']['title'] for m in sheets_metadata['sheets'] if m['properties']['sheetId']==gid][0]
+            print(tab)
+        except: pass
         
+        range_name = f"'{tab}'{columns}"
         sheet_object = service.spreadsheets().values().get(
             spreadsheetId = sheet_id, 
             range = range_name
@@ -40,17 +102,19 @@ def load_sales_sheet(
         list_of_records = sheet_object.get('values', [])
         
         if not list_of_records:
+            print('Sheet Empty')
             return pd.DataFrame()
         
         # Đằng nào cũng bị object toàn bộ, clean luôn cho sạch
         data = pd.DataFrame(data = list_of_records[1:], columns = colMap.values()).astype('string')
         mask = data.apply(lambda x: x.str.strip(), axis=0) == ''
         data = data.mask(mask)
+        print(data.tail(5))
         return data
     
     except:
         return pd.DataFrame()
-    
+
 @st.cache_data(show_spinner='Fetching data from Google Drive, this may take a few seconds...')
 def load_files_from_drive(
     folder_id: str  = FOLDER_ID, 
@@ -60,12 +124,12 @@ def load_files_from_drive(
     ### Hàm đọc toàn bộ files yêu cầu từ Drive và Cached RAM.
     ### Chạy lần đầu ở app.py, các page khác khi gọi hàm sẽ không cần fetch lại.
     """
-    secret_key  = SECRET_KEY
-    credentials = service_account.Credentials.from_service_account_info(secret_key)
-
+    
     def fetch_worker(file_name: str):
         try:
-            thread_service = build('drive', 'v3', credentials=credentials)
+            # không thể bỏ connections ra hàm ngoài, mỗi worker cần có service riêng
+            connections = get_google_connections()
+            thread_service = connections['drive']
             query = f"'{folder_id}' in parents and name = '{file_name}' and trashed = false"
             file_infos = thread_service.files().list(q=query, fields="files(id)").execute()
             files = file_infos.get('files', [])
@@ -260,3 +324,7 @@ def get_current_past_config(
     prev_month_days = (now_date - prev_month).days
 
     return curr_month, prev_month_days
+
+
+if __name__ == '__main__':
+ pass
