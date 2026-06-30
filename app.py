@@ -2,17 +2,21 @@ import textwrap
 import streamlit as st
 from visuals.css_inject import *
 from sections.dashboard.get_data import *
+from core.run_auth_pipe import authentic_pipeline
+from src.columns import stockCol as s
+import numpy as np
 SS = st.session_state
-is_james = SS.get('is_james')
+is_james    = SS.get('is_james')
 page_title  = 'Dynamic DataFrame'
-data_cached = load_all_from_drive()
+cached_http_session()
+data_cached = load_files_from_drive()
+
 
 st.set_page_config(
     layout      = 'wide',
     page_title  = page_title,
     page_icon   = '🐶'
     )
-
 
 # region 0. CSS Inject
 
@@ -71,10 +75,7 @@ css_hidden_hero = f"<h6 style='text-align: left; color: rgba(52, 67, 109, 0.55);
 
 dashboard_page = st.Page('views/dashboard.py', title='Dashboard', icon=':material/analytics:')
 pipelines_page = st.Page('views/demo.py', title='Data Pipelines', icon=':material/rocket_launch:')
-linear_page    = st.Page('views/linear_regression.py', title='Testing', icon=':material/experiment:')
-page_list      = [dashboard_page, pipelines_page]
-if is_james:
-    page_list.append(linear_page)
-
-pg = st.navigation(page_list, position='sidebar', expanded=True)
-pg.run()
+linear_page    = st.Page('views/linear_regression.py', title='Testing', icon=':material/experiment:', visibility='visible' if is_james else 'hidden')
+page_list      = [dashboard_page, pipelines_page, linear_page]
+pages          = st.navigation(page_list, position='sidebar', expanded=True)
+pages.run()
