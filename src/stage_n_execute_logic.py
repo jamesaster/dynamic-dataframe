@@ -6,7 +6,7 @@ from src.utils import is_boolean, is_datetime, is_alo, is_money, is_numeric, is_
 def stage_0(df: pd.DataFrame):
     #! stage_0: CAT_BY_NAME
     rules = {
-    'date_col'    : r'(?:^|_)(?:date|ngay|day|created|updated)(?:_|$)',
+    'date_col'    : r'^(?!.*traffic)(?:^|_)(?:date|ngay|day|created|updated)(?:_|$)',
     'time_col'    : r'(?:^|_)(?:time|gio|hour|minute|second|timestamp)(?:_|$)',
     'price'       : r'(?:^|_)(?:price|pice|unit_price|unitprice|đơn_giá|đơn_gia|gia|giá|gia_ban|giá_bán|prc)(?:_|$)',
     'numeric_col' : r'(?:^|_)(?:cash|card|vnpay|payoo|trade_in|banking|mkt_promo|cost|qty|quantity|sl|disc|discount|percent|fee|rate|tax|shipping)(?:_|$)',
