@@ -79,7 +79,7 @@ def load_sales_sheet(
     sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
     gid      : int = 0,
     tab      : str = 'combine',
-    columns  : str = '!A:Y'
+    columns  : str = '!A:AA'
 ) -> pd.DataFrame:
     """
     ## fetch data from googlesheets using gid_id, fallback with tab_name
@@ -90,8 +90,8 @@ def load_sales_sheet(
         try:
             sheets_metadata = service.spreadsheets().get(spreadsheetId = sheet_id).execute()
             tab = [m['properties']['title'] for m in sheets_metadata['sheets'] if m['properties']['sheetId']==gid][0]
-            print(tab)
-        except: pass
+        except Exception as e:
+            print(f'gid did not match: {e}')
         
         range_name = f"'{tab}'{columns}"
         sheet_object = service.spreadsheets().values().get(
@@ -100,7 +100,6 @@ def load_sales_sheet(
         ).execute()
         
         list_of_records = sheet_object.get('values', [])
-        
         if not list_of_records:
             print('Sheet Empty')
             return pd.DataFrame()
@@ -109,10 +108,10 @@ def load_sales_sheet(
         data = pd.DataFrame(data = list_of_records[1:], columns = colMap.values()).astype('string')
         mask = data.apply(lambda x: x.str.strip(), axis=0) == ''
         data = data.mask(mask)
-        print(data.tail(5))
         return data
     
-    except:
+    except Exception as e:
+        print(f"Ối giồi ôi: {e}")
         return pd.DataFrame()
 
 @st.cache_data(show_spinner='Fetching data from Google Drive, this may take a few seconds...')
@@ -234,8 +233,6 @@ def get_streamlit_data_from_drive(
     _PRODUCT: str
 ) -> tuple[pd.DataFrame, pd.DataFrame, any, any]:
     
-    print('get_streamlit_data_from_drive - optimized')
-
     file_list    = [_SALES, _LEDGER, _PRODUCT]
     all_raw_data = load_files_from_drive()
     

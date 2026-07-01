@@ -44,6 +44,7 @@ class colRaw:
     cus_email      = 'email'
     traffic        = 'date_traffic'
     event_name     = 'event_name'
+    
 colRaw_mapping = {
     0: colRaw.date,
     1: colRaw.invoice,
@@ -69,7 +70,9 @@ colRaw_mapping = {
     21: colRaw.cus_name,
     22: colRaw.cus_id,
     23: colRaw.time,
-    24: colRaw.subcat
+    24: colRaw.traffic,
+    25: colRaw.event_name,
+    26: colRaw.subcat
 }
 
 class colName:

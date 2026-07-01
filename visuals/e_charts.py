@@ -891,7 +891,13 @@ def get_stock_movement(df: pd.DataFrame):
     """
 
     if not isinstance(df, pd.DataFrame) or df.empty:
-        return None
+        return {
+            'metrics': {
+                'label' : ['Stock Count', 'Received', 'Sales Out', 'Transfer Out'],
+                'value' : [0, 0, 0, 0],
+                'return': None
+            }
+        }
     x_data = df[c.date].dt.strftime('%d-%m-%Y').tolist()
     y_configs = [
         {"col" : "import_do", "name": "Dispatch",  "color": "#73AEDE", "stack": "Positive"},
@@ -1025,8 +1031,10 @@ def tree_event_hyper_chart(
     ### ⚡ BEHAVIOR:
     - Vẽ biểu đồ cột chồng (Stacked Bar) kết hợp đường dòng chảy (Balance Line).
     """
-    if not chart_data:
-        return st.info("Không có biến động trong range đã chọn.")
+    if len(chart_data) == 1:
+        return st.info(
+            '- Không có biến động trong range đã chọn.\n\n'
+            '- Vui lòng kiểm tra hoặc cập nhật Stock Ledger.')
     min_y = int(chart_data.get("min_y")) or None
     max_y = int(chart_data.get("max_y")) or None
     interval = None
@@ -1188,18 +1196,16 @@ def sqrt_tree_v3(source):
     - Chỉ bóp căn bậc hai (`math.sqrt`) giá trị tổng của các ngành hàng Gốc (Root).
     - Giữ nguyên giá trị của tầng con để tối ưu hóa tỷ lệ hiển thị trên không gian Treemap.
     """
-    SS = st.session_state
 
-    if 'tree_cat_names' not in SS:
-        SS.tree_cat_names = [layer['name'] for layer in source]
-
+    root_cat  = ['3RD ACC', 'APPLE ACC', 'IPAD', 'IPHONE', 'MAC', 'WATCH']
     sqrt_data = []
+    
     for raw in source:
 
         sqrt = {
             'name'    : raw['name'],
             'rawValue': raw['value'],
-            'value'   : math.sqrt(raw['value']) if raw['name'] in SS.tree_cat_names else raw['value'],
+            'value'   : math.sqrt(raw['value']) if raw['name'] in root_cat else raw['value'],
             'quantity': raw['quantity'],
         }
 
