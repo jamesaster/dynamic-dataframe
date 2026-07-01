@@ -614,8 +614,7 @@ def interact_DataFrame(
 
     REQUIRED_COLS = [
         c.date, c.staff, c.sku, c.imei_sn,
-        c.prod_name, c.price, c.qty,
-        c.revenue, c.pay_cash, c.pay_card, c.pay_qr,
+        c.prod_name, c.price, c.qty, c.revenue, 
         c.time, c.cus_id, c.cus_name, c.cus_email
     ]
     _date = c.date
