@@ -1,10 +1,14 @@
 duckdb==1.5.4
 google_api_python_client==2.197.0
+joblib==1.5.3
 numpy==2.5.0
 pandas==3.0.3
+plotly==6.8.0
 protobuf==7.35.1
 python-dotenv==1.2.2
+scikit_learn==1.9.0
+scipy==1.18.0
+shap==0.52.0
+statsmodels==0.14.6
 streamlit==1.56.0
 streamlit_echarts==0.6.0
-statsmodels==0.14.6
-scikit-learn==1.9.0
