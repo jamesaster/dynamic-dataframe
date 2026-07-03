@@ -2845,7 +2845,7 @@ def pivot_bar_data(
     }
     pivot[period_mode] = times[period_mode](pivot[period_mode])
     headers  = pivot.columns.to_list()
-    data     = [headers] + pivot.values.tolist()
+    data     = [headers] + pivot.replace(np.inf, 0).values.tolist()
     legends  = headers[1:]
     units    = [units] * len(legends)
     interval = (6 if period_mode == c.date else 'auto')
