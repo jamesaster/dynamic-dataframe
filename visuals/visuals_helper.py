@@ -160,6 +160,8 @@ def format_metric_number(val):
         return f"{val / 1_000_000:.2f}M"
     if val >= 1_000:
         return f"{val / 1_000:.1f}k"
+    if val >= 100:
+        return f"{val:.0f}"
     return f"{val:.2f}"
 def get_sparkline(data: pd.Series, max_points=30):
     """
