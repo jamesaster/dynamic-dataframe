@@ -861,3 +861,60 @@ def category_stock_status(
 
     # NOTE Phải reset_index ở cuối, nếu reset trước filter thì trích xuất click cell sẽ bị lỗi
     return active_df.reset_index(drop=False)
+
+
+def get_avail_stock(sales: pd.DataFrame, stock: pd.DataFrame, start: pd.Timestamp, end: pd.Timestamp):
+    #region     3. Process top sku by month / category indicator by day 
+    from columns import colName as c, colFormat as f
+    top_sku_month = (
+        sales
+        .groupby([c.month, c.cat, c.sku], as_index=False)[c.revenue].sum()
+        .sort_values([c.month, c.revenue], ascending=[True, False])
+        .groupby([c.month, c.cat]).head(20) # 20 is sweet spot
+        .sort_values([c.month, c.cat], ignore_index=True)
+    )
+    top_sku_month = (
+        sales
+        .groupby([c.month, c.cat, c.sku], as_index=False)[c.qty].sum()
+        .sort_values([c.month, c.qty], ascending=[True, False])
+        .groupby([c.month, c.cat]).head(7)
+        .sort_values([c.month, c.cat], ignore_index=True)
+    )
+    raw_stock = get_stockledger_as_of(
+        ledger_df    = stock,
+        start_period = start,
+        end_period   = end
+        )
+    raw_stock.insert(0, c.month, raw_stock[c.date].dt.strftime(f.month))
+
+    select_sku   = raw_stock[s.sku].isin(top_sku_month[c.sku].unique())
+    active_sku   = raw_stock[s.start] >= 0
+    df_stock     = raw_stock[select_sku & active_sku].reset_index(drop=True)
+
+    stock_pivot  = pd.pivot_table(
+        data     = df_stock,
+        values   = s.start,
+        index    = [c.month, s.date],
+        columns  = [s.cat, s.sku],
+        observed = True
+    )
+    remove_sku  = stock_pivot.sum(axis=0) == 0
+    stock_pivot = stock_pivot.loc[:, ~remove_sku].ffill(axis=0).fillna(0)
+
+    stock_avail = (stock_pivot > 0).astype('int')
+    avail_mask  = pd.DataFrame(False, index=stock_avail.index, columns=stock_avail.columns)
+
+    # Create month-mask for available matrix
+    for (month, cat), sub_df in top_sku_month.groupby([c.month, c.cat]):
+        sku_list = [sku for sku in sub_df[s.sku].tolist() if (cat, sku) in stock_pivot.columns]
+        if sku_list:
+            # masking by month and 1 cat each loop
+            avail_mask.loc[month, (cat, sku_list)] = True
+
+    # Apply 2D boolean mask onto raw matrix
+    masked_matrix    = stock_avail.where(avail_mask)
+    # Horizontal groupby columns level 0 (cat) by
+    available_matrix = masked_matrix.reset_index(level=c.month, drop=True).T.groupby(level=s.cat, observed=True).mean().T
+    available_matrix.columns = available_matrix.columns.astype('str')
+    stock_avail_cols = available_matrix.columns.tolist()
+    # endregion
