@@ -39,7 +39,7 @@ def smart_data_pipeline (df: pd.DataFrame, config: dict) -> pd.DataFrame:
    #endregion
 
 
-   if config['prod_info_repair'] == True:
+   if config.get('prod_info_repair') == True:
       sales_df = repair_product(sales_df)
 
 
