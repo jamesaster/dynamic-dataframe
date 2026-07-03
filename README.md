@@ -1,10 +1,12 @@
-# Dynamic Dataframe: Retail Analytics & Store Operations Suite
+# Dynamic Dataframe: Retail Analytics & ML-Driven Operations Suite
 
 ![Python](https://img.shields.io/badge/Python-v3.14.3-blue.svg)
 ![Streamlit](https://img.shields.io/badge/Streamlit-v1.56.0-FF4B4B.svg)
 ![Streamlit ECharts](https://img.shields.io/badge/Streamlit%20ECharts-v0.6.0-E4393C.svg)
-
-Dự án tái cấu trúc dữ liệu bán lẻ rời rạc thành một bộ máy vận hành trực quan, biến con số thành thông tin hành động tức thì.
+![scikit-learn](https://img.shields.io/badge/scikit--learn-v1.9.0-F7931E.svg?logo=scikit-learn&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-v1.18.0-8CAAE6.svg?logo=scipy&logoColor=white)
+![statsmodels](https://img.shields.io/badge/statsmodels-v0.14.6-1f4257.svg?logo=python&logoColor=white)
+![SHAP](https://img.shields.io/badge/SHAP-v0.52.0-000000.svg)
 
 ---
 
@@ -30,9 +32,9 @@ Hệ thống này đóng vai trò là "hệ điều hành" cho cửa hàng. Thay
 
 ---
 
-## 📐 Kiến Trúc Giao Diện & Khối Chức Năng (UI/UX Breakdown)
+## 📋 Dashboard
 
-### 🔹 Sơ đồ bố cục tổng quan
+### Khối Chức Năng (UI/UX Breakdown)
 
     +-------------------------------------------------------------------------+
     | [ KPI Card 1 ]      [ KPI Card 2 ]      [ KPI Card 3 ]   [ KPI Card 4 ] |
@@ -64,32 +66,86 @@ Hệ thống này đóng vai trò là "hệ điều hành" cho cửa hàng. Thay
 * **4. Luồng vận động hàng hóa (Core Distribution):**
     * **Revenue Treemap:** Bóc tách tỉ trọng doanh thu theo ngành hàng. Đây là cửa ngõ phân tích, cho phép drill-down để nhận diện ngay lập tức đâu là "key items" và đâu là điểm nghẽn doanh thu.
     * **Stock Flow (Interactive):** Module này được kích hoạt trực tiếp từ hành động chọn ngành hàng trên *Revenue Treemap*. Nó tự động đồng bộ hóa để giám sát biến động Nhập - Xuất - Bán - Trả, kèm đường line lũy kế, giúp tôi kiểm soát chính xác vòng đời của sản phẩm.
-
 ---
 
-## 📂 Cấu Trúc Thư Mục Dự Án (Project Structure)
-
-    .
-    ├── .streamlit/           # Cấu hình UI
-    ├── sections/             # Logic Dashboard theo phân đoạn chức năng
-    ├── src/
-    │   ├── columns.py        # Centralized Mapping (Đồng bộ danh định)
-    │   └── stockledger.py    # Pipeline: Clean, Pivot, Reshape & Scoring
-    ├── visuals/              # Custom ECharts & UI Dynamic
-    ├── app.py                # Main Entry Point
-    └── requirements.txt      # Dependencies
-
+## 🧪 Analysis (SHAP)
+### 🔹 Feature Impact Analysis (ML-Driven Intelligence)
+* **Mục tiêu:** Vượt qua giới hạn của các báo cáo tĩnh, module này sử dụng Học máy (`Random Forest` & `SHAP Theory`) như một "kính hiển vi" để bóc tách và định lượng chính xác mức độ đóng góp (+/-) của từng chỉ số trọng yếu lên doanh thu sàn. Từ đó, loại bỏ hoàn toàn cảm tính khi đưa ra quyết định điều phối.
+* **Giải pháp kỹ thuật phục vụ quản trị:** * *Kiểm soát cộng tuyến (Multicollinearity):* Áp dụng nghiêm ngập việc sàng lọc biến. Loại bỏ các dữ liệu trùng lặp về mùa vụ để cô lập dòng chảy vào đúng 6 động lực vận hành/thương mại cốt lõi: `Conversion Rate`, `UPT`, `Foot Traffic`, `Promotion`, `Trade-In`, và `Installment`.
+    * *Trực quan hóa mật độ (Density Mapping):* Tích hợp thuật toán ước lượng mật độ để phân rã các điểm dữ liệu trên ECharts. Giúp người quản lý nhìn thấy ngay tần suất xuất hiện và khoảng dao động của hiệu quả vận hành.
+* **Giá trị thực chiến (Actionable Insights):** Hệ thống không chỉ đưa ra con số mà kết nối thẳng tới các kịch bản hành động (Popover UI) để tối ưu hóa hiệu suất Store:
+    * Định vị "điểm gãy" của tỷ lệ chuyển đổi (dưới mốc 3.5%) để kịp thời chấn chỉnh quy trình tiếp cận khách hàng của nhân sự.
+    * Nhận diện "ngưỡng trần bão hòa" của UPT (mốc 2.0) để điều chỉnh mục tiêu doanh số bán kèm (Cross-selling) thực tế hơn, tránh gây áp lực vô ích lên đội ngũ.
+    * Phân hóa kịch bản Traffic để chủ động lập kế hoạch: Đẩy ưu đãi ngày thường khi khách dưới ngưỡng 500, và chuyển trọng tâm sang điều phối nhân sự/bố trí quầy kệ khi khách vượt ngưỡng cao điểm 2,000.
+    * Đo lường biên độ ảnh hưởng và bóc tách hiện tượng "gộp hiệu năng" giữa các chương trình Marketing với giải pháp tài chính (Trade-In, Trả góp), tối ưu hóa cấu trúc chi phí và ngân sách ưu đãi tại store.
 ---
+## 📂 Project Structure
+```
+.
+├── .devcontainer/
+│   └── devcontainer.json
+├── .streamlit/
+│   └── config.toml
+├── core/
+│   ├── anonymize_sales_product.py
+│   ├── finalize_and_clean_dataset.py
+│   ├── load_normalize.py
+│   ├── mimic_financial_logic.py
+│   ├── pipe_run.py
+│   ├── process_product_master.py
+│   ├── run_auth_pipe.py
+│   ├── sales_join_traffics.py
+│   ├── secure_customer_identity.py
+│   ├── secure_product_identity.py
+│   └── validate_standardize.py
+├── sections/
+│   └── dashboard/
+│       ├── get_data.py
+│       ├── hero_n_finder.py
+│       ├── high_level_df.py
+│       ├── kpis_4_metrics.py
+│       ├── target_n_pfm.py
+│       └── tree_n_movement.py
+├── src/
+│   ├── columns.py
+│   ├── customer_logic.py
+│   ├── datetime_logic.py
+│   ├── product_logic.py
+│   ├── revenue_logic.py
+│   ├── stage_n_execute_logic.py
+│   ├── stockledger.py
+│   └── utils.py
+├── views/
+│   ├── dashboard.py
+│   ├── demo.py
+│   ├── shap_analysis.py
+│   └── test.py
+├── visuals/
+│   ├── css_inject.py
+│   ├── dynamic_dataframe.py
+│   ├── e_charts.py
+│   ├── visuals_helper.py
+│   └── web_ui.py
+├── .gitignore
+├── app.py
+├── README.md
+└── requirements.txt
+```
 
-## 🛠️ Yêu Cầu Hệ Thống (Requirements)
+## 🛠️ Requirements
 
 ```text
 duckdb==1.5.4
 google_api_python_client==2.197.0
+joblib==1.5.3
 numpy==2.5.0
 pandas==3.0.3
-plotly==6.8.0
 protobuf==7.35.1
 python-dotenv==1.2.2
+scikit_learn==1.9.0
+scipy==1.18.0
+shap==0.52.0
+statsmodels==0.14.6
 streamlit==1.56.0
 streamlit_echarts==0.6.0
+
