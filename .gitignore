@@ -24,3 +24,4 @@ log/cleaning_log.txt
 *.xlsx
 *.json
 *.parquet
+*.pkl
