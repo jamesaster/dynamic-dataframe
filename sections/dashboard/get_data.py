@@ -1,14 +1,17 @@
-from io import BytesIO
-from pathlib import Path
-import streamlit as st
-import pandas as pd
-import duckdb
-from concurrent.futures import ThreadPoolExecutor
 from src.columns import colName as c, colRaw_mapping as colMap, colFormat as f
+from src.stockledger import process_stockLedger
+from concurrent.futures import ThreadPoolExecutor
+from googleapiclient.http import MediaIoBaseUpload
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import google.auth.transport.requests
+from pathlib import Path
+from io import BytesIO
+import streamlit as st
+import pandas as pd
+import duckdb
 
+SS = st.session_state
 SECRET_KEY      = st.secrets['gcs_connections']
 FOLDER_ID       = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
 FILE_LIST       = [
@@ -19,10 +22,12 @@ FILE_LIST       = [
     'DEMO_price_cat_ledger.csv',
     'DEMO_Anonym_Price.csv',
     'DEMO_sales_dummy_1000.csv',
-    'DEMO_TRAFFIC.parquet'
+    'DEMO_TRAFFIC.parquet',
+    'random_forest.pkl',
+    'ETP_stock_ledger.parquet'
 ]
 
-@st.cache_resource
+@st.cache_resource(show_spinner='Khởi tạo kết nối tới Google API')
 def cached_http_session():
     """
     ## Khởi tạo đường ống tới Google API (Thread-safe).
@@ -114,7 +119,7 @@ def load_sales_sheet(
         print(f"Ối giồi ôi: {e}")
         return pd.DataFrame()
 
-@st.cache_data(show_spinner='Fetching data from Google Drive, this may take a few seconds...')
+@st.cache_data(show_spinner='Fetching data from Google Drive...')
 def load_files_from_drive(
     folder_id: str  = FOLDER_ID, 
     file_list: list = FILE_LIST
@@ -146,6 +151,8 @@ def load_files_from_drive(
                 df = pd.read_csv(BytesIO(media_content))
             elif ext == 'parquet':
                 df = pd.read_parquet(BytesIO(media_content))
+            elif ext == 'pkl':
+                df = BytesIO(media_content)
             else:
                 df = None
             return file_name, df
@@ -157,8 +164,88 @@ def load_files_from_drive(
         
     return {file_name: df for file_name, df in results if df is not None}
 
+@st.fragment
+def upload_stockLedger(is_james: bool, google_service = get_google_connections()['drive']):
+    if not is_james: return
+    if not 'upload_worker' in SS:
+        SS.upload_worker = 'pending'
+        SS.upload_worker_counter = 0
+
+    def upload_worker(parquet_buffer, google_service):
+        buffer_to_media  = MediaIoBaseUpload(parquet_buffer, mimetype='application/octet-stream', resumable=False)
+        try:
+            updated_file = google_service.files().update(
+                fileId     = '1EM0gi30at2Rb4cnxCr-C2vZ6CQl3PwpH',
+                body       = {'name': 'ETP_stock_ledger.parquet'},     
+                media_body = buffer_to_media,
+                fields     = 'id, name'
+            ).execute(num_retries = 3)
+            SS.upload_worker = 'Done'
+            print('[upload_worker] ⚡')
+            
+        except Exception as e:
+            print(f"[upload_worker] Upload {updated_file.get('name')} Error: {e}")
+            SS.upload_worker = False
+
+    with st.popover(
+        label    = '**Upload Stock Ledger**',
+        icon     = ':material/upload_file:',
+        width    = 'stretch',
+        disabled = not is_james
+        ):
+        st.subheader('Dữ liệu ETP từ ngày mở cửa')
+
+        if SS.upload_worker == 'dimiss':
+            st.info('Upload Successful!')
+
+        file = st.file_uploader(
+            label            = 'Update Stock',
+            type             = 'xls',
+            key              =  f'update_stock_{SS.upload_worker_counter}',
+            max_upload_size  =  50,
+            label_visibility = 'collapsed'
+        )
+
+        if file is None or file.type != 'application/vnd.ms-excel':
+            SS.upload_worker = 'pending'
+            return
+        
+        raw_stock = pd.read_excel(BytesIO(file.getvalue()), engine='xlrd')
+        if len(raw_stock.columns) != 19:
+            return
+        
+        stock_ledger = process_stockLedger(raw_stock)
+        if stock_ledger is None or stock_ledger.empty:
+            return
+        
+        SS.stock_ledger = stock_ledger
+        s_date = stock_ledger[c.date].iloc[0].strftime('%d-%m-%Y')
+        e_date = stock_ledger[c.date].iloc[-1].strftime('%d-%m-%Y')
+        
+        st.info(
+            f"""
+            **File info:**
+            - From:\u2000 {str(s_date)}
+            - End:\u2000\u2000 {str(e_date)}
+            """)
+
+        parquet_buffer = BytesIO()
+        stock_ledger.to_parquet(
+            parquet_buffer,
+            engine = 'pyarrow',
+            compression = 'snappy',
+            use_dictionary = True,
+            index = False
+        )
+        parquet_buffer.seek(0)
+        if st.button('Submit', width = 'stretch', icon = ':material/check:'):
+            upload_worker(parquet_buffer, google_service)
+            SS.upload_worker = 'dimiss'
+            SS.upload_worker_counter += 1
+            st.rerun(scope='fragment')
+
 @st.cache_data
-def get_streamlit_data(
+def get_local_data(
     *,
     path_raw: Path, 
     path_saved_ledger: Path, 
@@ -225,12 +312,37 @@ def get_streamlit_data(
 
     return stock_ledger, raw, min_date, max_date
 
+
+def switch_to_auth(sales_data: pd.DataFrame):
+    stock_ledger = (
+        load_files_from_drive()
+        ['ETP_stock_ledger.parquet']
+        )
+    
+    stock_info = (
+        sales_data
+        .dropna(subset=c.price)
+        .drop_duplicates(subset=c.sku, keep='last', ignore_index=True)
+        [[c.sku, c.cat, c.subcat, c.price]]
+        )
+    
+    if SS.get('stock_ledger') is not None:
+        stock_ledger = SS.stock_ledger
+
+    stock_ledger = stock_ledger.merge(stock_info, how='left', on=c.sku).dropna(how='any', ignore_index=True)
+ 
+    min_date = sales_data[c.date].min()
+    max_date = sales_data[c.date].max()
+
+    return stock_ledger, sales_data, min_date, max_date
+
+
 @st.cache_data
-def get_streamlit_data_from_drive(
+def get_demo_data(
     *,
-    _SALES  : str,
-    _LEDGER : str,
-    _PRODUCT: str
+    _SALES   :str = 'DASHBOARD_Run_Forest_Run.parquet',
+    _LEDGER  :str = 'DASHBOARD_stock_ledger.parquet',
+    _PRODUCT :str = 'DASHBOARD_master_product.csv'
 ) -> tuple[pd.DataFrame, pd.DataFrame, any, any]:
     
     file_list    = [_SALES, _LEDGER, _PRODUCT]
@@ -304,18 +416,13 @@ def get_streamlit_data_from_drive(
 
 
 def get_current_past_config(
-    df: pd.DataFrame, 
-    _date: str = c.date
-    ) -> tuple[str, int]:
+    max_date: pd.Timestamp 
+) -> tuple[str, int]:
     """
     ### Xác định tháng hiện tại
     ### Xác định lọc 1 tháng gần nhất là lấy bao nhiêu ngày
     """
-    # (Today or Max date)
-    now_date = pd.Timestamp.today().normalize()
-    if not (df[_date] == now_date).any():
-        now_date = df[_date].max()
-
+    now_date = max_date
     prev_month = now_date - pd.DateOffset(months=1)
     curr_month = now_date.strftime('%B')
     prev_month_days = (now_date - prev_month).days
