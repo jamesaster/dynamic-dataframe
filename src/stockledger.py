@@ -56,8 +56,9 @@ def process_stockLedger(path: Path):
         16: s.noname_4, #? Trash col ...
         18: s.end
         }
+    if path is None: return
     if isinstance(path, pd.DataFrame):
-        RAW_LEDGER = path.iloc[:, list(COL_MAP)]
+        RAW_LEDGER = path.iloc[:, list(COL_MAP)].convert_dtypes()
         RAW_LEDGER.columns = list(COL_MAP.values())
     else:
         if path.suffix == '.xls':
@@ -73,7 +74,7 @@ def process_stockLedger(path: Path):
                 usecols = list(COL_MAP.keys())
                 ).convert_dtypes()
             RAW_LEDGER.columns = list(COL_MAP.values())
-        
+    
     RAW_cols = RAW_LEDGER.columns
     
     #? Tạo 1 dòng buffer
@@ -918,3 +919,4 @@ def get_avail_stock(sales: pd.DataFrame, stock: pd.DataFrame, start: pd.Timestam
     available_matrix.columns = available_matrix.columns.astype('str')
     stock_avail_cols = available_matrix.columns.tolist()
     # endregion
+
