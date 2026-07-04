@@ -8,10 +8,17 @@ import duckdb
 import re
 from src import *
 from visuals import *
-from src.columns import colName as c
+from src.columns import colName as c, colFormat as f, stockCol as s
+from core.run_auth_pipe import authentic_pipeline
 from sections.dashboard import *
 
+#region #* Upload Ledger
+is_james = SS.get('is_james')
+with st.sidebar: upload_stockLedger(is_james)
+#endregion
+
 #region #? 0.   SOURCE
+
 #region (local)
 _importance = """
 Việc gom tất cả các hàm read_file vào cùng 1 @st.cache_data 
@@ -44,20 +51,37 @@ path_hashed_product = BASE_DIR / 'data_output' / 'Anonym_Price_update_sku_includ
 
 
 #? Get final data (Offline)
-# stock_ledger, df, min_date, max_date = get_streamlit_data(
+# stock_ledger, df, min_date, max_date = get_local_data(
 #     path_raw=path_parquet,
 #     path_saved_ledger=path_ledger,
 #     path_product_master=path_hashed_product
 # )
 #endregion (local)
 
-#region (Google Drive)
-stock_ledger, df, min_date, max_date = get_streamlit_data_from_drive(
-    _SALES   = 'DASHBOARD_Run_Forest_Run.parquet',
-    _LEDGER  = 'DASHBOARD_stock_ledger.parquet',
-    _PRODUCT = 'DASHBOARD_master_product.csv'
+#region (Google API)
+sales_auth = authentic_pipeline()
+demo_data  = get_demo_data()
+demo_auth  = switch_to_auth(sales_auth)
+stock_ledger, sales_data, min_date, max_date = demo_auth if is_james else demo_data
+current_ts = (
+    f"<strong>{sales_data[c.date].iloc[-1].strftime('%d-%m-%Y')}</strong>"
+    f" at <strong>{sales_data[c.time].iloc[-1].strftime('%H:%M')}</strong>"
 )
-#endregion (Google Drive)
+dash_title = 'Key Performance Indicators'
+dash_sub   = """
+    <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
+        This is a <strong>retail operations dashboard</strong>, built for high-fidelity insights.<br>
+        Data is synthesized from real-world patterns, ensuring the business logic remains strictly authentic.
+    </div>
+    """
+if is_james:
+    dash_title = st.secrets.env.store
+    dash_sub   = f"""
+    <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
+        Last transaction updated on {current_ts}
+    </div>
+    """
+#endregion (Google API)
 
 #endregion
 
@@ -89,17 +113,19 @@ stock_ledger, df, min_date, max_date = get_streamlit_data_from_drive(
 #endregion
 
 def main(
-    df             : pd.DataFrame,
-    stock_ledger   : pd.DataFrame,
-    min_date       : any,
-    max_date       : any
+    df           : pd.DataFrame,
+    stock_ledger : pd.DataFrame,
+    min_date     : any,
+    max_date     : any,
+    dash_title   : str,
+    dash_sub     : str
     ):
     """
     # 🐶 Dynamic Dataframe Demo v1.0
     """
     #region  1.   SIDE BAR + FILTER + LOW-LEVEL table
     side_bar_title = ":material/filter_alt: Filters"
-    currmonth, prevmonth_days = get_current_past_config(df)
+    currmonth, prevmonth_days = get_current_past_config(max_date)
     date_config = {
     f'{currmonth} So Far'         : 0,
     f'Past {prevmonth_days} Days' : 1,
@@ -220,12 +246,8 @@ def main(
     #region  4.   DISPLAY
 
     #region #! 1. METRICs
-    styled_header('Key Performance Indicators', h=2)
-    st.markdown("""
-    <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
-        This is a <strong>retail operations dashboard</strong>, built for high-fidelity insights.<br>
-        Data is synthesized from real-world patterns, ensuring the business logic remains strictly authentic.
-    </div> """, unsafe_allow_html=True)
+    styled_header(dash_title, h=2)
+    st.markdown(dash_sub, unsafe_allow_html=True)
 
     metric_config = get_metrics_config(
         tf_distrib    = traffic_distrib,
@@ -299,9 +321,9 @@ def main(
             'ledger_df'     : stock_ledger,
             'start_period'  : period_anchor,
             'end_period'    : today,
-            'date_col'      : 'date',
-            'first_num_col' : 'start',
-            'last_num_col'  : 'end',
+            'date_col'      : s.date,
+            'first_num_col' : s.start,
+            'last_num_col'  : s.end,
             'tree_event'    : None
         }
         treemap_n_stock_movement(
@@ -321,8 +343,10 @@ def main(
 
 if __name__ == "__main__":
     main(
-        df             = df,
+        df             = sales_data,
         stock_ledger   = stock_ledger,
         min_date       = min_date,
-        max_date       = max_date
+        max_date       = max_date,
+        dash_title     = dash_title,
+        dash_sub       = dash_sub
         )
