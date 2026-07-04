@@ -2,14 +2,17 @@ name: Keep Streamlit Awake
 
 on:
   schedule:
-    - cron: '0 */10 * * *'
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Cho phép bạn bấm nút chạy thử thủ công trên giao diện GitHub
 
 jobs:
   keep-alive:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # QUAN TRỌNG: Cấp quyền ghi để Bot có thể push empty commit lên repo
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Cập nhật lên bản v4 mới nhất ổn định hơn
 
       - name: Create Empty Commit
         run: |
