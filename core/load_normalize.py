@@ -13,7 +13,7 @@ def load_and_normalize(csv_path_1: str, csv_path_2: str, config: dict) -> pd.Dat
     # 2. Đồng bộ header vstack
     df_1.columns = df_2.columns 
 
-    # 3. Vstack và dropna
+    # 3. Vstack và (Dropna cho 4 cột đầu quan trọng)
     first_4_cols = df_1.columns[:4]
     df_raw = pd.concat([df_1, df_2], axis=0, ignore_index=True)
     df_raw = df_raw.dropna(subset=first_4_cols).reset_index(drop=True)
