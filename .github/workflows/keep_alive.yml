@@ -3,20 +3,20 @@ name: Keep Streamlit Awake
 on:
   schedule:
     - cron: '0 */6 * * *'
-  workflow_dispatch: # Cho phép bạn bấm nút chạy thử thủ công trên giao diện GitHub
+  workflow_dispatch:
 
 jobs:
   keep-alive:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # QUAN TRỌNG: Cấp quyền ghi để Bot có thể push empty commit lên repo
+      contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4 # Cập nhật lên bản v4 mới nhất ổn định hơn
+        uses: actions/checkout@v4
 
       - name: Create Empty Commit
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "41898282+github-actions[bot]@://github.com"
           git commit --allow-empty -m "Keepalive ping from GitHub Actions"
           git push
