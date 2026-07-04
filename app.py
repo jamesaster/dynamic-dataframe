@@ -9,7 +9,8 @@ SS = st.session_state
 is_james    = SS.get('is_james')
 page_title  = 'Dynamic DataFrame'
 cached_http_session()
-data_cached = load_files_from_drive()
+authentic_pipeline()
+load_files_from_drive()
 
 
 st.set_page_config(
@@ -75,7 +76,7 @@ css_hidden_hero = f"<h6 style='text-align: left; color: rgba(52, 67, 109, 0.55);
 
 dashboard_page = st.Page('views/dashboard.py', title='Dashboard', icon=':material/analytics:')
 pipelines_page = st.Page('views/demo.py', title='Data Pipelines', icon=':material/rocket_launch:')
-linear_page    = st.Page('views/linear_regression.py', title='Testing', icon=':material/experiment:', visibility='visible' if is_james else 'hidden')
-page_list      = [dashboard_page, pipelines_page, linear_page]
+shap_page      = st.Page('views/shap_analysis.py', title='Analysis', icon=':material/experiment:')
+page_list      = [dashboard_page, shap_page, pipelines_page]
 pages          = st.navigation(page_list, position='sidebar', expanded=True)
 pages.run()
