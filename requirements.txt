@@ -9,7 +9,7 @@ protobuf==7.35.1
 python-dotenv==1.2.2
 scikit_learn==1.9.0
 scipy==1.18.0
-shap==0.52.0
+shap
 statsmodels==0.14.6
 streamlit==1.56.0
 streamlit_echarts==0.6.0
