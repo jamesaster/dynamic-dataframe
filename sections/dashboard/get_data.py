@@ -10,8 +10,12 @@ from io import BytesIO
 import streamlit as st
 import pandas as pd
 import duckdb
-
 SS = st.session_state
+
+ledger_FOLDER    = '1f5YXBV-WgLJLfCsIDqIy5x_X2k2EhV5y'
+ledger_UPLOAD_ID = '1EM0gi30at2Rb4cnxCr-C2vZ6CQl3PwpH'
+ledger_FILE_NAME = 'ETP_stock_ledger.parquet'
+
 SECRET_KEY      = st.secrets['gcs_connections']
 FOLDER_ID       = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
 FILE_LIST       = [
@@ -125,8 +129,8 @@ def load_sales_sheet(
 
 #region Google Drive
 def fetch_worker(
+    folder_id: str,
     file_name: str,
-    folder_id: str = FOLDER_ID
     ):
     try:
         # không thể bỏ connections ra hàm ngoài, mỗi worker cần có service riêng
@@ -165,10 +169,10 @@ def load_files_from_drive(
     ### Hàm đọc toàn bộ files yêu cầu từ Drive và Cached RAM.
     ### Chạy lần đầu ở app.py, các page khác khi gọi hàm sẽ không cần fetch lại.
     """
-    
+    if isinstance(file_list, str):
+        file_list = [file_list]
     with ThreadPoolExecutor(max_workers=len(file_list)) as executor:
-        results = executor.map(fetch_worker, file_list)
-        
+        results = executor.map(lambda name: fetch_worker(folder_id, name), file_list)
     return {file_name: df for file_name, df in results if df is not None}
 #endregion
 
@@ -184,12 +188,11 @@ def upload_stockLedger(is_james: bool, google_service = get_google_connections()
         buffer_to_media  = MediaIoBaseUpload(parquet_buffer, mimetype='application/octet-stream', resumable=False)
         try:
             updated_file = google_service.files().update(
-                fileId     = '1EM0gi30at2Rb4cnxCr-C2vZ6CQl3PwpH',
-                body       = {'name': 'ETP_stock_ledger.parquet'},     
+                fileId     = ledger_UPLOAD_ID,
+                body       = {'name': ledger_FILE_NAME},     
                 media_body = buffer_to_media,
                 fields     = 'id, name'
             ).execute(num_retries = 3)
-            SS.upload_worker = 'Done'
             print('[upload_worker] ⚡')
             
         except Exception as e:
@@ -201,11 +204,11 @@ def upload_stockLedger(is_james: bool, google_service = get_google_connections()
         icon     = ':material/upload_file:',
         width    = 'stretch',
         disabled = not is_james
-        ):
+    ):
         st.subheader('Dữ liệu ETP từ ngày mở cửa')
 
         if SS.upload_worker == 'dimiss':
-            st.info('Upload Successful!')
+            st.info('Upload Successful!', icon=':material/cloud_done:')
 
         file = st.file_uploader(
             label            = 'Update Stock',
@@ -223,11 +226,15 @@ def upload_stockLedger(is_james: bool, google_service = get_google_connections()
         if len(raw_stock.columns) != 19:
             return
         
+        progress_bar = st.progress(0)
+        status_text  = st.empty()
         stock_ledger = process_stockLedger(raw_stock)
+        status_text.success('File Processed', icon=':material/data_check:')
+        progress_bar.progress(50)
+
         if stock_ledger is None or stock_ledger.empty:
             return
         
-        SS.stock_ledger = stock_ledger
         s_date = stock_ledger[c.date].iloc[0].strftime('%d-%m-%Y')
         e_date = stock_ledger[c.date].iloc[-1].strftime('%d-%m-%Y')
         
@@ -248,12 +255,16 @@ def upload_stockLedger(is_james: bool, google_service = get_google_connections()
         )
         parquet_buffer.seek(0)
         if st.button('Submit', width = 'stretch', icon = ':material/check:'):
+            progress_bar.progress(100)
+            status_text.markdown('⏳ Uploading...')
             upload_worker(parquet_buffer, google_service)
+            load_files_from_drive.clear(ledger_FOLDER, ledger_FILE_NAME)
             SS.upload_worker = 'dimiss'
             SS.upload_worker_counter += 1
-            st.rerun(scope='fragment')
+            st.rerun(scope='app')
 #endregion
 
+#region Get final dashboard data
 @st.cache_data
 def get_local_data(
     *,
@@ -263,6 +274,7 @@ def get_local_data(
     _date_col: str = c.date
 ) -> tuple[pd.DataFrame, pd.DataFrame, any, any]:
     """
+    # Dành cho chạy máy LOCAL
     ## Read from hard drive path.
     - Hàm gộp tối ưu: Đọc dữ liệu, xử lý SQL và tạo sẵn các cột time metrics.
     """
@@ -322,11 +334,10 @@ def get_local_data(
 
     return stock_ledger, raw, min_date, max_date
 
-def switch_to_auth(sales_data: pd.DataFrame):
-    stock_ledger = (
-        load_files_from_drive()
-        ['ETP_stock_ledger.parquet']
-        )
+def switch_to_auth(
+        sales_data: pd.DataFrame # gọi auth_pipe bên trong bị circular nên gán tham số truyền vào
+        ):
+    stock_ledger = load_files_from_drive(ledger_FOLDER, ledger_FILE_NAME).get(ledger_FILE_NAME)
     
     stock_info = (
         sales_data
@@ -335,9 +346,6 @@ def switch_to_auth(sales_data: pd.DataFrame):
         [[c.sku, c.cat, c.subcat, c.price]]
         )
     
-    if SS.get('stock_ledger') is not None:
-        stock_ledger = SS.stock_ledger
-
     stock_ledger = stock_ledger.merge(stock_info, how='left', on=c.sku).dropna(how='any', ignore_index=True)
  
     min_date = sales_data[c.date].min()
@@ -421,7 +429,7 @@ def get_demo_data(
     raw[c.prod_name] = raw[c.sku].map(product_name_map)
 
     return stock_ledger, raw, min_date, max_date
-
+#endregion
 
 def get_current_past_config(
     max_date: pd.Timestamp 

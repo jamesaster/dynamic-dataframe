@@ -154,7 +154,6 @@ def main(
     period_anchor: pd.Timestamp = df_stage_1.attrs['period_anchor'].as_unit("ns")
     today: pd.Timestamp = df_stage_1.attrs['today'].as_unit("ns")
     df_stage_1.attrs = {}
-    
     #endregion
 
     #region     1c. Sidebar Advanced Filters
