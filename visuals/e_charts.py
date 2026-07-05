@@ -889,7 +889,7 @@ def get_stock_movement(df: pd.DataFrame):
     ### OUTPUT:
     - `dict`: Chứa cấu trúc ECharts chuẩn (`colors`, `all_series`, `legends`, `x_data`).
     """
-
+ 
     if not isinstance(df, pd.DataFrame) or df.empty:
         return {
             'metrics': {
@@ -920,7 +920,13 @@ def get_stock_movement(df: pd.DataFrame):
     nega_cols = [item.get('col') for item in y_valids if item.get('stack') == "Negative"]
     #? DEBUG 17/06/26: trường hợp df hợp lệ nhưng mà full 0 -> sum() == 0
     if not y_valids:
-        return
+        return {
+            'metrics': {
+                'label' : ['Stock Count', 'Received', 'Sales Out', 'Transfer Out'],
+                'value' : [0, 0, 0, 0],
+                'return': None
+            }
+        }
   
     [stock_col]  = [item.get('line') for item in y_valids if item.get('line')]
 
@@ -1031,7 +1037,7 @@ def tree_event_hyper_chart(
     ### ⚡ BEHAVIOR:
     - Vẽ biểu đồ cột chồng (Stacked Bar) kết hợp đường dòng chảy (Balance Line).
     """
-    if len(chart_data) == 1:
+    if chart_data is None or len(chart_data) == 1:
         return st.info(
             '- Không có biến động trong range đã chọn.\n\n'
             '- Vui lòng kiểm tra hoặc cập nhật Stock Ledger.')

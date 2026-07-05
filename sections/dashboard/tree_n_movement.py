@@ -70,6 +70,7 @@ def treemap_n_stock_movement(
         with stock:
             movement_df = get_specific_inventory_as_of(**stock_config)
             stock_movement = get_stock_movement(movement_df)
+            print(stock_movement)
             tree_event_hyper_chart(
                 chart_data = stock_movement,
                 chart_id   = f'stock_movement{chart_id}',
