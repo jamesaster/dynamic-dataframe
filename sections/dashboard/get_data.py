@@ -27,6 +27,7 @@ FILE_LIST       = [
     'ETP_stock_ledger.parquet'
 ]
 
+#region Connections
 @st.cache_resource(show_spinner='Khởi tạo kết nối tới Google API')
 def cached_http_session():
     """
@@ -78,8 +79,10 @@ def get_google_connections(key = SECRET_KEY):
         'drive': drive_service,
         'sheets': sheets_service
     }
+#endregion
 
-@st.cache_data(ttl=43200, show_spinner='Fetching data from Google Sheets...')
+#region Google Sheets
+@st.cache_data(ttl=3600, show_spinner='Fetching data from Google Sheets...')
 def load_sales_sheet(
     sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
     gid      : int = 0,
@@ -118,8 +121,42 @@ def load_sales_sheet(
     except Exception as e:
         print(f"Ối giồi ôi: {e}")
         return pd.DataFrame()
+#endregion
 
-@st.cache_data(show_spinner='Fetching data from Google Drive...')
+#region Google Drive
+def fetch_worker(
+    file_name: str,
+    folder_id: str = FOLDER_ID
+    ):
+    try:
+        # không thể bỏ connections ra hàm ngoài, mỗi worker cần có service riêng
+        connections = get_google_connections()
+        thread_service = connections['drive']
+        query = f"'{folder_id}' in parents and name = '{file_name}' and trashed = false"
+        file_infos = thread_service.files().list(q=query, fields="files(id)").execute()
+        files = file_infos.get('files', [])
+        
+        if not files:
+            return file_name, None
+            
+        file_id = files[0]['id']
+        media_content = thread_service.files().get_media(fileId=file_id).execute()
+        ext = file_name.split('.')[-1].lower()
+        
+        if ext in ['xlsx', 'xls']:
+            df = pd.read_excel(BytesIO(media_content))
+        elif ext == 'csv':
+            df = pd.read_csv(BytesIO(media_content))
+        elif ext == 'parquet':
+            df = pd.read_parquet(BytesIO(media_content))
+        elif ext == 'pkl':
+            df = BytesIO(media_content)
+        else:
+            df = None
+        return file_name, df
+    except Exception:
+        return file_name, None
+@st.cache_data(ttl=3600, show_spinner='Fetching data from Google Drive...')
 def load_files_from_drive(
     folder_id: str  = FOLDER_ID, 
     file_list: list = FILE_LIST
@@ -129,41 +166,13 @@ def load_files_from_drive(
     ### Chạy lần đầu ở app.py, các page khác khi gọi hàm sẽ không cần fetch lại.
     """
     
-    def fetch_worker(file_name: str):
-        try:
-            # không thể bỏ connections ra hàm ngoài, mỗi worker cần có service riêng
-            connections = get_google_connections()
-            thread_service = connections['drive']
-            query = f"'{folder_id}' in parents and name = '{file_name}' and trashed = false"
-            file_infos = thread_service.files().list(q=query, fields="files(id)").execute()
-            files = file_infos.get('files', [])
-            
-            if not files:
-                return file_name, None
-                
-            file_id = files[0]['id']
-            media_content = thread_service.files().get_media(fileId=file_id).execute()
-            ext = file_name.split('.')[-1].lower()
-            
-            if ext in ['xlsx', 'xls']:
-                df = pd.read_excel(BytesIO(media_content))
-            elif ext == 'csv':
-                df = pd.read_csv(BytesIO(media_content))
-            elif ext == 'parquet':
-                df = pd.read_parquet(BytesIO(media_content))
-            elif ext == 'pkl':
-                df = BytesIO(media_content)
-            else:
-                df = None
-            return file_name, df
-        except Exception:
-            return file_name, None
-
     with ThreadPoolExecutor(max_workers=len(file_list)) as executor:
         results = executor.map(fetch_worker, file_list)
         
     return {file_name: df for file_name, df in results if df is not None}
+#endregion
 
+#region Upload to Drive
 @st.fragment
 def upload_stockLedger(is_james: bool, google_service = get_google_connections()['drive']):
     if not is_james: return
@@ -243,6 +252,7 @@ def upload_stockLedger(is_james: bool, google_service = get_google_connections()
             SS.upload_worker = 'dimiss'
             SS.upload_worker_counter += 1
             st.rerun(scope='fragment')
+#endregion
 
 @st.cache_data
 def get_local_data(
@@ -312,7 +322,6 @@ def get_local_data(
 
     return stock_ledger, raw, min_date, max_date
 
-
 def switch_to_auth(sales_data: pd.DataFrame):
     stock_ledger = (
         load_files_from_drive()
@@ -335,7 +344,6 @@ def switch_to_auth(sales_data: pd.DataFrame):
     max_date = sales_data[c.date].max()
 
     return stock_ledger, sales_data, min_date, max_date
-
 
 @st.cache_data
 def get_demo_data(
