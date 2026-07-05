@@ -441,10 +441,10 @@ start_date  = pd.to_datetime('01-04-2024', dayfirst=True)
 end_date    = pd.to_datetime('30-06-2026', dayfirst=True)
 date_mask   = lambda df: df[c.date].between(start_date, end_date)
 
-sales_raw = load_sales_sheet()
-stock_raw = load_files_from_drive(ledger_FOLDER, ledger_FILE_NAME).get(ledger_FILE_NAME)
-app_data  = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
-sales: pd.DataFrame = app_data[1]
+sales: pd.DataFrame = SS.get('analysis_data', None)
+if sales is None:
+    st.info('Switch to dashboard then swicth back.')
+    st.stop()
 
 raw_sales = sales.loc[date_mask, :]
 raw_sales.loc[:, c.event_name] = raw_sales[c.event_name].astype('string').replace('-', pd.NA)

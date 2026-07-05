@@ -1,4 +1,4 @@
-from src.columns import colName as c, colRaw_mapping as colMap, colFormat as f
+from src.columns import colName as c, colFormat as f, stockCol as s, colRaw_mapping as colMap
 from src.stockledger import process_stockLedger
 from src.product_logic import repair_product
 from core.run_auth_pipe import authentic_pipeline
@@ -7,6 +7,7 @@ from googleapiclient.http import MediaIoBaseUpload
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import google.auth.transport.requests
+from datetime import datetime
 from pathlib import Path
 from io import BytesIO
 import streamlit as st
@@ -180,8 +181,17 @@ def load_files_from_drive(
 
 #region Upload to Drive
 @st.fragment
-def upload_stockLedger(is_james: bool, google_service = get_google_connections()['drive']):
+def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_service = get_google_connections()['drive']):
     if not is_james: return
+    
+    if not isinstance(current_stock, pd.DataFrame): return
+
+    #region #? Loại bỏ stock data ngày cuối trước khi concat
+    drop_date = current_stock[s.date].iloc[-1].normalize()
+    curr_mask = current_stock[s.date] < drop_date
+    current_stock_cutted = current_stock[curr_mask]
+    #endregion
+
     if not 'upload_worker' in SS:
         SS.upload_worker = 'pending'
         SS.upload_worker_counter = 0
@@ -207,7 +217,12 @@ def upload_stockLedger(is_james: bool, google_service = get_google_connections()
         width    = 'stretch',
         disabled = not is_james
     ):
-        st.subheader('Dữ liệu ETP từ ngày mở cửa')
+        today = pd.Timestamp.today().normalize()
+        sub_header = (
+            'Up To Date' if drop_date == today else
+            f'Thiếu data từ: **{drop_date.strftime('%d-%m-%Y')}**'
+            )
+        st.subheader(sub_header)
 
         if SS.upload_worker == 'dimiss':
             st.info('Upload Successful!', icon=':material/cloud_done:')
@@ -230,23 +245,44 @@ def upload_stockLedger(is_james: bool, google_service = get_google_connections()
         
         progress_bar = st.progress(0)
         status_text  = st.empty()
-        stock_ledger = process_stockLedger(raw_stock)
-        status_text.success('File Processed', icon=':material/data_check:')
-        progress_bar.progress(50)
-
-        if stock_ledger is None or stock_ledger.empty:
+        append_stock = process_stockLedger(raw_stock)
+        if append_stock is None or append_stock.empty:
             return
-        
-        s_date = stock_ledger[c.date].iloc[0].strftime('%d-%m-%Y')
-        e_date = stock_ledger[c.date].iloc[-1].strftime('%d-%m-%Y')
-        
-        st.info(
-            f"""
-            **File info:**
-            - From:\u2000 {str(s_date)}
-            - End:\u2000\u2000 {str(e_date)}
-            """)
+        file_info = st.empty()
 
+        stock_ledger = None
+        if st.text_input('Bypass key', label_visibility='collapsed') == 'james':
+            if st.text_input('Are you sure ?', value='') == 'yes':
+                stock_ledger = append_stock
+                st.caption('Submit to overwrite')
+            else:
+                SS.upload_worker_counter += 1
+
+        else:
+            s_date = append_stock[s.date].iloc[0]
+            e_date = append_stock[s.date].iloc[-1]
+            if s_date > drop_date:
+                st.error('File này thiếu!')
+                return       
+            if e_date != today:
+                st.error('File này outdated!')
+                return
+            stock_ledger = pd.concat([current_stock_cutted, append_stock])
+
+            status_text.success('File Processed', icon=':material/data_check:')
+            progress_bar.progress(50)
+
+            s_date = s_date.strftime('%d-%m-%Y')
+            e_date = e_date.strftime('%d-%m-%Y')
+            file_info.info(
+                f"""
+                **File info:**
+                - From:\u2000 {str(s_date)}
+                - End:\u2000\u2000 {str(e_date)}
+                """)
+
+        if stock_ledger is None:
+            return
         parquet_buffer = BytesIO()
         stock_ledger.to_parquet(
             parquet_buffer,

@@ -10,11 +10,7 @@ from src import *
 from visuals import *
 from src.columns import colName as c, colFormat as f, stockCol as s
 from sections.dashboard import *
-
-#region #* Upload Ledger
 is_james = SS.get('is_james')
-with st.sidebar: upload_stockLedger(is_james)
-#endregion
 
 #region #? 0.   SOURCE
 
@@ -61,8 +57,11 @@ path_hashed_product = BASE_DIR / 'data_output' / 'Anonym_Price_update_sku_includ
 sales_raw = load_sales_sheet()
 stock_raw = load_files_from_drive(ledger_FOLDER, ledger_FILE_NAME).get(ledger_FILE_NAME)
 app_data  = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
-demo_data = demo_data_bundle()
+auth_stock = app_data[0] if app_data else None
+auth_sales = app_data[1] if app_data else None
+SS.analysis_data = auth_sales
 
+demo_data = demo_data_bundle()
 stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data
 current_ts = (
     f"<strong>{sales_data[c.date].iloc[-1].strftime('%d-%m-%Y')}</strong>"
@@ -84,7 +83,11 @@ if is_james:
     """
 #endregion (Google API)
 
+#region #* Upload Ledger
+with st.sidebar: upload_stockLedger(is_james, auth_stock)
 #endregion
+
+#endregion #? END
 
 #region Dataframe explained
     #! df 
