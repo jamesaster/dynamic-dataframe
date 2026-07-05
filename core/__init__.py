@@ -1,5 +1,5 @@
 from .load_normalize import load_and_normalize
-from .validate_standardize import smart_data_pipeline
+from .validate_standardize import smart_sales_clean
 from .secure_customer_identity import anonymize_customer_pii
 from .process_product_master import process_product_master
 from .secure_product_identity import insert_hash_sku_imei
