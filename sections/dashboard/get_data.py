@@ -27,8 +27,7 @@ FILE_LIST       = [
     'DEMO_Anonym_Price.csv',
     'DEMO_sales_dummy_1000.csv',
     'DEMO_TRAFFIC.parquet',
-    'random_forest.pkl',
-    'ETP_stock_ledger.parquet'
+    'random_forest.pkl'
 ]
 
 #region Connections
