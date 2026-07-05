@@ -1,17 +1,14 @@
-import numpy as np
-import pandas as pd
 from src import stockCol as s, colRaw as r
-from sections.dashboard import load_files_from_drive
+import pandas as pd
+import numpy as np
 
-def repair_product(sales: pd.DataFrame):
+def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     """
     ## Hàm sửa chữa thông tin cho sản phẩm trong [Sales Data]
     - Cơ chế: dùng lot làm anchor mapping từ stockledger
     - Fallback: manual masking
     """
-    # Nhặt stockledger từ RAM
     print('[repair_product] Activating..')
-    stock: pd.DataFrame = load_files_from_drive()['DASHBOARD_stock_ledger.parquet']
 
     #region 1. Normalize Sales lot
     lot_n_imei = sales[r.imei_sn].str.split('/')
@@ -37,6 +34,7 @@ def repair_product(sales: pd.DataFrame):
     #endregion
 
     #region 4. Mapping
+    sales.loc[sales[r.cat] == '-', r.cat] = pd.NA # Update 05/07/26 đảo thứ tự pipeline, thêm bước ép NA
     before_na = sales[r.cat].isna().sum()
     columns   = sales.columns
 
