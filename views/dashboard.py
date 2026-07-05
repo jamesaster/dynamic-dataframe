@@ -9,7 +9,6 @@ import re
 from src import *
 from visuals import *
 from src.columns import colName as c, colFormat as f, stockCol as s
-from core.run_auth_pipe import authentic_pipeline
 from sections.dashboard import *
 
 #region #* Upload Ledger
@@ -59,10 +58,12 @@ path_hashed_product = BASE_DIR / 'data_output' / 'Anonym_Price_update_sku_includ
 #endregion (local)
 
 #region (Google API)
-sales_auth = authentic_pipeline()
-demo_data  = get_demo_data()
-demo_auth  = switch_to_auth(sales_auth)
-stock_ledger, sales_data, min_date, max_date = demo_auth if is_james else demo_data
+sales_raw = load_sales_sheet()
+stock_raw = load_files_from_drive(ledger_FOLDER, ledger_FILE_NAME).get(ledger_FILE_NAME)
+app_data  = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
+demo_data = demo_data_bundle()
+
+stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data
 current_ts = (
     f"<strong>{sales_data[c.date].iloc[-1].strftime('%d-%m-%Y')}</strong>"
     f" at <strong>{sales_data[c.time].iloc[-1].strftime('%H:%M')}</strong>"

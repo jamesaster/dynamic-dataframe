@@ -1732,7 +1732,7 @@ def treemap_chart(
 #                     )
 
 #endregion
-  
+
 #region Target 📈
 
 @st.cache_data

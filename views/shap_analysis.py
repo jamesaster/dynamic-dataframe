@@ -441,7 +441,11 @@ start_date  = pd.to_datetime('01-04-2024', dayfirst=True)
 end_date    = pd.to_datetime('30-06-2026', dayfirst=True)
 date_mask   = lambda df: df[c.date].between(start_date, end_date)
 
-sales: pd.DataFrame = authentic_pipeline()
+sales_raw = load_sales_sheet()
+stock_raw = load_files_from_drive(ledger_FOLDER, ledger_FILE_NAME).get(ledger_FILE_NAME)
+app_data  = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
+sales: pd.DataFrame = app_data[1]
+
 raw_sales = sales.loc[date_mask, :]
 raw_sales.loc[:, c.event_name] = raw_sales[c.event_name].astype('string').replace('-', pd.NA)
 raw_sales = raw_sales[raw_sales[c.revenue] > 0].reset_index(drop=True)

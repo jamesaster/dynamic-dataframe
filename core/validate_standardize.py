@@ -1,9 +1,8 @@
-import pandas as pd
 from src.columns import colRaw as r
-from src.product_logic import repair_product
+import pandas as pd
 from src import *
 
-def smart_data_pipeline (df: pd.DataFrame, config: dict) -> pd.DataFrame:
+def smart_sales_clean (sales_raw: pd.DataFrame, config: dict) -> pd.DataFrame:
    """
    ## Stage 2 - Data Validation & Standardization
    Tiền xử lý dữ liệu tự động dựa trên phân loại dtype, logic doanh thu và ngày tháng.
@@ -18,16 +17,14 @@ def smart_data_pipeline (df: pd.DataFrame, config: dict) -> pd.DataFrame:
    4. Thực thi (Execution): Duyệt qua Dictionary phân loại từ bước 1 để ép kiểu (astype) 
       và điền khuyết (fillna) đồng loạt cho toàn bộ DataFrame.
    """
-   if not isinstance(df, pd.DataFrame) or df.empty:
+   if not isinstance(sales_raw, pd.DataFrame) or sales_raw.empty:
       return
 
-   
    #* Prepare for pipeline
-   validate_cols = df.columns[:4].tolist()
-   na_mask = df[validate_cols].isna().any(axis=1)
+   validate_cols = sales_raw.columns[:4].tolist()
+   na_mask = sales_raw[validate_cols].isna().any(axis=1)
    print('Drop NA columns[:4].any():', na_mask.sum(), 'rows')
-   sales_df = df.dropna(subset=validate_cols, how='any', ignore_index=True).copy()
-
+   sales_df = sales_raw.dropna(subset=validate_cols, how='any', ignore_index=True).copy()
 
    #region #? Categorizing Column
    categorize_results  = stage_1(stage_0(sales_df))
@@ -37,11 +34,6 @@ def smart_data_pipeline (df: pd.DataFrame, config: dict) -> pd.DataFrame:
    # 27-06-26 Update: Vì fetch từ sheet, columns 100% là string nên cần coerce ngay từ bước này
    sales_df[numeric_combine] = sales_df[numeric_combine].apply(pd.to_numeric, axis=0, errors='coerce', downcast='integer')
    #endregion
-
-
-   if config.get('prod_info_repair') == True:
-      sales_df = repair_product(sales_df)
-
 
    #region #? Validating Revenue | Recovering Date
    sales_df = rev_validate(sales_df, config['payment_cols'], config['disc_cols'], categorize_results)

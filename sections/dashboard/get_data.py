@@ -1,5 +1,7 @@
 from src.columns import colName as c, colRaw_mapping as colMap, colFormat as f
 from src.stockledger import process_stockLedger
+from src.product_logic import repair_product
+from core.run_auth_pipe import authentic_pipeline
 from concurrent.futures import ThreadPoolExecutor
 from googleapiclient.http import MediaIoBaseUpload
 from googleapiclient.discovery import build
@@ -11,14 +13,14 @@ import streamlit as st
 import pandas as pd
 import duckdb
 SS = st.session_state
-
+#region IDs
 ledger_FOLDER    = '1f5YXBV-WgLJLfCsIDqIy5x_X2k2EhV5y'
 ledger_UPLOAD_ID = '1EM0gi30at2Rb4cnxCr-C2vZ6CQl3PwpH'
 ledger_FILE_NAME = 'ETP_stock_ledger.parquet'
 
-SECRET_KEY      = st.secrets['gcs_connections']
-FOLDER_ID       = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
-FILE_LIST       = [
+SECRET_KEY       = st.secrets['gcs_connections']
+FOLDER_ID        = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
+FILE_LIST        = [
     'DASHBOARD_Run_Forest_Run.parquet',
     'DASHBOARD_stock_ledger.parquet',
     'DASHBOARD_master_product.csv',
@@ -29,6 +31,7 @@ FILE_LIST       = [
     'DEMO_TRAFFIC.parquet',
     'random_forest.pkl'
 ]
+#endregion
 
 #region Connections
 @st.cache_resource(show_spinner='Khởi tạo kết nối tới Google API')
@@ -85,7 +88,7 @@ def get_google_connections(key = SECRET_KEY):
 #endregion
 
 #region Google Sheets
-@st.cache_data(ttl=3600, show_spinner='Fetching data from Google Sheets...')
+@st.cache_data(ttl=1800, show_spinner='Fetching data from Google Sheets...')
 def load_sales_sheet(
     sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
     gid      : int = 0,
@@ -159,7 +162,7 @@ def fetch_worker(
         return file_name, df
     except Exception:
         return file_name, None
-@st.cache_data(ttl=3600, show_spinner='Fetching data from Google Drive...')
+@st.cache_data(show_spinner='Fetching data from Google Drive...')
 def load_files_from_drive(
     folder_id: str  = FOLDER_ID, 
     file_list: list = FILE_LIST
@@ -333,27 +336,28 @@ def get_local_data(
 
     return stock_ledger, raw, min_date, max_date
 
-def switch_to_auth(
-        sales_data: pd.DataFrame # gọi auth_pipe bên trong bị circular nên gán tham số truyền vào
-        ):
-    stock_ledger = load_files_from_drive(ledger_FOLDER, ledger_FILE_NAME).get(ledger_FILE_NAME)
-    
-    stock_info = (
+@st.cache_data
+def app_data_bundle(
+    sales_raw: pd.DataFrame,
+    stock_raw: pd.DataFrame
+):
+    sales_data = sales_raw.pipe(authentic_pipeline)
+    stock_info_from_sales = (
         sales_data
         .dropna(subset=c.price)
         .drop_duplicates(subset=c.sku, keep='last', ignore_index=True)
         [[c.sku, c.cat, c.subcat, c.price]]
         )
     
-    stock_ledger = stock_ledger.merge(stock_info, how='left', on=c.sku).dropna(how='any', ignore_index=True)
- 
-    min_date = sales_data[c.date].min()
-    max_date = sales_data[c.date].max()
+    stock_ledger = stock_raw.merge(stock_info_from_sales, how='left', on=c.sku).dropna(how='any', ignore_index=True)
+    sales_data   = repair_product(sales=sales_data, stock=stock_ledger)
+    min_date     = sales_data[c.date].min()
+    max_date     = sales_data[c.date].max()
 
     return stock_ledger, sales_data, min_date, max_date
 
 @st.cache_data
-def get_demo_data(
+def demo_data_bundle(
     *,
     _SALES   :str = 'DASHBOARD_Run_Forest_Run.parquet',
     _LEDGER  :str = 'DASHBOARD_stock_ledger.parquet',
