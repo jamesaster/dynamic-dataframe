@@ -110,9 +110,7 @@ def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
     str_keys = ['string_col', 'phone_col', 'category_col']
     str_cols = sum([final_results.get(key, []) for key in str_keys], [])
     if str_cols:
-        df_new[str_cols]  = df[str_cols].astype('string').apply(lambda x: x.str.strip())
-        empty_string_mask = df_new[str_cols] == ''
-        df_new[str_cols]  = df_new[str_cols].mask(empty_string_mask, '-')
+        df_new[str_cols] = df_new[str_cols].replace(r'^\s*$', '-', regex=True).astype('string')
 
     try:
         df_new = df_new[df.columns]

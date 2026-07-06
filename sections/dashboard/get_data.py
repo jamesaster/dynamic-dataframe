@@ -120,9 +120,8 @@ def load_sales_sheet(
             return pd.DataFrame()
         
         # Đằng nào cũng bị object toàn bộ, clean luôn cho sạch
-        data = pd.DataFrame(data = list_of_records[1:], columns = colMap.values()).astype('string')
-        mask = data.apply(lambda x: x.str.strip(), axis=0) == ''
-        data = data.mask(mask)
+        data = pd.DataFrame(data=list_of_records[1:], columns=colMap.values())
+        data = data.replace(r'^\s*$', pd.NA, regex=True).astype('string')
         return data
     
     except Exception as e:
