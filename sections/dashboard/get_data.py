@@ -226,6 +226,8 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
 
         if SS.upload_worker == 'dimiss':
             st.info('Upload Successful!', icon=':material/cloud_done:')
+            SS.upload_worker = 'pending'
+        if drop_date == today: return
 
         file = st.file_uploader(
             label            = 'Update Stock',
