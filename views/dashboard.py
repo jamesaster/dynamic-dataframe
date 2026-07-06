@@ -63,8 +63,10 @@ SS.analysis_data = auth_sales
 
 demo_data = demo_data_bundle()
 stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data
-current_ts = (
-    f"<strong>{sales_data[c.date].iloc[-1].strftime('%d-%m-%Y')}</strong>"
+
+lastest_date = sales_data[c.date].iloc[-1].normalize()
+current_ts   = (
+    f"<strong>{'Today' if lastest_date == pd.Timestamp.today().normalize() else 'on ' + lastest_date.strftime('%d-%m-%Y')}</strong>"
     f" at <strong>{sales_data[c.time].iloc[-1].strftime('%H:%M')}</strong>"
 )
 dash_title = 'Key Performance Indicators'
@@ -78,7 +80,7 @@ if is_james:
     dash_title = st.secrets.env.store
     dash_sub   = f"""
     <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
-        Last transaction updated on {current_ts}
+        Last transaction updated {current_ts}
     </div>
     """
 #endregion (Google API)
