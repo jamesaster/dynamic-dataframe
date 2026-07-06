@@ -86,7 +86,9 @@ if is_james:
 #endregion (Google API)
 
 #region #* Upload Ledger
-with st.sidebar: upload_stockLedger(is_james, auth_stock)
+with st.sidebar:
+    upload_stockLedger(is_james, auth_stock)
+
 #endregion
 
 #endregion #? END

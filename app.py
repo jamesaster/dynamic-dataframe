@@ -8,8 +8,9 @@ import numpy as np
 SS = st.session_state
 is_james    = SS.get('is_james')
 page_title  = 'Dynamic DataFrame'
-
 cached_http_session()
+load_sales_sheet()
+load_files_from_drive()
 
 st.set_page_config(
     layout      = 'wide',

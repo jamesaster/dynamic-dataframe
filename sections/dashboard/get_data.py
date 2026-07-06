@@ -89,7 +89,7 @@ def get_google_connections(key = SECRET_KEY):
 #endregion
 
 #region Google Sheets
-@st.cache_data(ttl=1800, show_spinner='Fetching data from Google Sheets...')
+@st.cache_data(ttl=3600, show_spinner='Fetching data from Google Sheets...')
 def load_sales_sheet(
     sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
     gid      : int = 0,
@@ -386,7 +386,7 @@ def get_local_data(
 
     return stock_ledger, raw, min_date, max_date
 
-@st.cache_data
+@st.cache_data(show_spinner='Synchronizing Data...')
 def app_data_bundle(
     sales_raw: pd.DataFrame,
     stock_raw: pd.DataFrame
