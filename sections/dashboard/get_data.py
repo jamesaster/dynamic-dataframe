@@ -507,7 +507,7 @@ def get_drive_trigger(
         if not utc_str:
             return ""
         modified_time = pd.to_datetime(utc_str).tz_convert("Asia/Ho_Chi_Minh").strftime("%H:%M:%S %d/%m/%Y")
-        return "at " + modified_time
+        return modified_time
     
     except Exception as e:
         return "network_error_fallback"

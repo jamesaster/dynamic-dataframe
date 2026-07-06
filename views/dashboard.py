@@ -11,7 +11,8 @@ from visuals import *
 from src.columns import colName as c, colFormat as f, stockCol as s
 from sections.dashboard import *
 is_james = SS.get('is_james')
-
+trigger  = get_drive_trigger()
+time_str, date_str = (trigger.split(maxsplit=1) + [None])[:2]
 #region #? 0.   SOURCE
 
 #region (local)
@@ -54,8 +55,10 @@ path_hashed_product = BASE_DIR / 'data_output' / 'Anonym_Price_update_sku_includ
 #endregion (local)
 
 #region (Google API)
-sales_raw = load_sales_sheet()
-stock_raw = load_files_from_drive(ledger_FOLDER, ledger_FILE_NAME).get(ledger_FILE_NAME)
+auth_raw  = load_files_from_drive(trigger)
+sales_raw = auth_raw.get(authID.sales_name)
+stock_raw = auth_raw.get(authID.ledger_name)
+
 app_data  = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
 auth_stock = app_data[0] if app_data else None
 auth_sales = app_data[1] if app_data else None
@@ -63,19 +66,12 @@ SS.analysis_data = auth_sales
 
 demo_data = demo_data_bundle()
 stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data
-
+ 
 lastest_date = sales_data[c.date].iloc[-1].normalize()
 current_ts   = (
-    f"<strong>{'Today' if lastest_date == pd.Timestamp.today().normalize() else 'on ' + lastest_date.strftime('%d-%m-%Y')}</strong>"
-    f" at <strong>{sales_data[c.time].iloc[-1].strftime('%H:%M')}</strong>"
+    f"<strong>{'Today' if lastest_date == pd.Timestamp.today().normalize() else 'on ' + date_str}</strong>"
+    f" at <strong>{time_str}</strong>"
 )
-dash_title = 'Key Performance Indicators'
-dash_sub   = """
-    <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
-        This is a <strong>retail operations dashboard</strong>, built for high-fidelity insights.<br>
-        Data is synthesized from real-world patterns, ensuring the business logic remains strictly authentic.
-    </div>
-    """
 if is_james:
     dash_title = st.secrets.env.store
     dash_sub   = f"""
@@ -83,6 +79,14 @@ if is_james:
         Last transaction updated {current_ts}
     </div>
     """
+else:
+    dash_title = 'Key Performance Indicators'
+    dash_sub   = """
+        <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
+            This is a <strong>retail operations dashboard</strong>, built for high-fidelity insights.<br>
+            Data is synthesized from real-world patterns, ensuring the business logic remains strictly authentic.
+        </div>
+        """
 #endregion (Google API)
 
 #region #* Upload Ledger
