@@ -60,13 +60,18 @@ sales_raw = auth_raw.get(authID.sales_name)
 stock_raw = auth_raw.get(authID.ledger_name)
 
 app_data  = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
-auth_stock = app_data[0] if app_data else None
 auth_sales = app_data[1] if app_data else None
 SS.analysis_data = auth_sales
 
 demo_data = demo_data_bundle()
 stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data
- 
+
+if sales_data is None or sales_data.empty:
+    if st.button('Reload'):
+        load_files_from_drive.clear()
+        load_files_from_drive.clear(get_drive_trigger())
+    else:
+        st.stop()
 if is_james:
     current_ts   = (
         f"<strong>{'Today' if sales_data[c.date].iloc[-1].normalize() == pd.Timestamp.today().normalize() else 'on ' + date_str}</strong>"
@@ -86,17 +91,11 @@ else:
             Data is synthesized from real-world patterns, ensuring the business logic remains strictly authentic.
         </div>
         """
-if sales_data is None or sales_data.empty:
-    if st.button('Reload'):
-        load_files_from_drive.clear()
-        load_files_from_drive.clear(get_drive_trigger())
-    else:
-        st.stop()
 #endregion (Google API)
 
 #region #* Upload Ledger
 with st.sidebar:
-    upload_stockLedger(is_james, auth_stock)
+    upload_stockLedger(is_james, stock_raw)
 #endregion
 
 #endregion #? END

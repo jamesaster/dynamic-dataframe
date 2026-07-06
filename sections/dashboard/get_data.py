@@ -195,16 +195,20 @@ def load_files_from_drive(trigger: str  = None) -> dict:
 #region Upload to Drive
 @st.fragment
 def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_service = get_google_connections()['drive']):
+    """
+    ## Bắt buộc dùng stockLedger CHƯA thêm cột phụ làm tham số (Bảo toàn tính toàn vẹn khi update)
+    """
     if not is_james: return
-    
     if not isinstance(current_stock, pd.DataFrame): return
+    if len(current_stock.columns) != 17: #! 17 là số cột ĐÃ process
+        st.error('Absolute wrong ledger!')
+        return
 
     #region #? Loại bỏ data tại drop_anchor trước khi concat
     drop_anchor = current_stock[s.date].iloc[-1].normalize()
     curr_mask = current_stock[s.date] < drop_anchor
     current_stock_cutted = current_stock[curr_mask]
     #endregion
-
     if not 'upload_worker' in SS:
         SS.upload_worker = 'pending'
         SS.upload_worker_counter = 0
@@ -212,7 +216,7 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
     def upload_worker(parquet_buffer, google_service):
         buffer_to_media  = MediaIoBaseUpload(parquet_buffer, mimetype='application/octet-stream', resumable=False)
         try:
-            updated_file = google_service.files().update(
+            google_service.files().update(
                 fileId     = authID.ledger_id,
                 body       = {'name': authID.ledger_name},     
                 media_body = buffer_to_media,
@@ -221,7 +225,7 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
             print('[upload_worker] ⚡')
             
         except Exception as e:
-            print(f"[upload_worker] Upload {updated_file.get('name')} Error: {e}")
+            print(f"[upload_worker] Upload {authID.ledger_name} Error: {e}")
             SS.upload_worker = False
 
     with st.popover(
@@ -256,8 +260,9 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
             return
         
         raw_stock = pd.read_excel(BytesIO(file.getvalue()), engine='xlrd')
-        if len(raw_stock.columns) != 19:
-            return
+
+        if len(raw_stock.columns) != 19: #* 19 là số cột CHƯA process
+            return st.error('🫩 File vớ vẩn ?')
         
         progress_bar = st.progress(0)
         status_text  = st.empty()
@@ -269,6 +274,7 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
         file_info    = st.empty()
         stock_ledger = None
 
+        #? Bypass Flow
         if st.text_input('Bypass key', type='password', width=240, label_visibility='collapsed') == 'james':
             if (are_you_sure := st.text_input('Are you sure ?', value='', placeholder="type 'yes' to continue")) == 'yes':
                 stock_ledger = append_stock
@@ -278,17 +284,18 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
             else:
                 SS.upload_worker_counter += 1
                 st.rerun(scope='fragment')
-
-        else:
+        else: #? Normal Flow
             s_date = append_stock[s.date].iloc[0]
             e_date = append_stock[s.date].iloc[-1]
 
             if s_date > drop_anchor:
-                st.error('File này thiếu!')
+                st.error('File này thiếu!', icon=':material/data_info_alert:')
                 return       
             if e_date != today:
-                st.error('File này outdated!')
+                st.error('File này outdated!', icon=':material/data_info_alert:')
                 return
+            if not current_stock_cutted.columns.equals(append_stock.columns):
+                return st.error('Columns did not match!')
 
             #region #? Chỉ lấy data append kể từ drop_anchor
             append_mask  = append_stock[s.date] >= drop_anchor
@@ -404,6 +411,12 @@ def app_data_bundle(
     sales_raw: pd.DataFrame,
     stock_raw: pd.DataFrame
 ):
+    if sales_raw is None and SS.get('is_james'):
+        SS.pop('is_james', False)
+        st.rerun(scope='app')
+    elif sales_raw is None:
+        return [None] * 4
+    
     sales_data = sales_raw.pipe(normalize_sales_sheet).pipe(authentic_pipeline)
     stock_info_from_sales = (
         sales_data
@@ -412,8 +425,10 @@ def app_data_bundle(
         [[c.sku, c.cat, c.subcat, c.price]]
         )
     
-    stock_ledger = stock_raw.merge(stock_info_from_sales, how='left', on=c.sku).dropna(how='any', ignore_index=True)
+    stock_ledger = stock_raw.merge(stock_info_from_sales, how='left', on=c.sku)
     sales_data   = repair_product(sales=sales_data, stock=stock_ledger)
+    #! Chỉ dropna stock_ledger sau khi `repair_product`
+    stock_ledger = stock_ledger.dropna(subset=s.cat, ignore_index=True)
     min_date     = sales_data[c.date].min()
     max_date     = sales_data[c.date].max()
 

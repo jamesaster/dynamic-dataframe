@@ -1,7 +1,7 @@
 from src import stockCol as s, colRaw as r
 import pandas as pd
 import numpy as np
-
+import streamlit as st
 def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     """
     ## Hàm sửa chữa thông tin cho sản phẩm trong [Sales Data]
@@ -18,6 +18,8 @@ def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     #region 2. Product info lookup table form stockledger
     prod_info = stock[stock[s.lot].notna()][[s.lot, s.sku, s.prod_name]]
     prod_info = prod_info.drop_duplicates(subset=s.lot, ignore_index=True)
+    prod_info.loc[prod_info[s.lot] == '-', s.lot] = pd.NA
+    prod_info = prod_info.dropna(subset=s.lot, ignore_index=True)
     #endregion
 
     #region 3. Create CAT col from scratch
@@ -37,11 +39,9 @@ def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     sales.loc[sales[r.cat] == '-', r.cat] = pd.NA # Update 05/07/26 đảo thứ tự pipeline, thêm bước ép NA
     before_na = sales[r.cat].isna().sum()
     columns   = sales.columns
-
+    error_lot = sales.loc[(sales[r.cat].isna()) & (sales[r.imei_sn] != '-'), r.imei_sn]
     sales     = sales.set_index(r.imei_sn)
-    NA_mask   = sales[r.cat].isna()
-    NA_lot    = sales[NA_mask].index.dropna()
-    prod_info = prod_info[prod_info[s.lot].isin(NA_lot)].set_index(s.lot)
+    prod_info = prod_info[prod_info[s.lot].isin(error_lot)].set_index(s.lot)
     sales.update(prod_info)
     sales     = sales.reset_index(drop=False)
     #endregion
