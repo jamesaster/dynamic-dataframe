@@ -28,11 +28,13 @@ def smart_sales_clean (sales_raw: pd.DataFrame, config: dict) -> pd.DataFrame:
 
    #region #? Categorizing Column
    categorize_results  = stage_1(stage_0(sales_df))
-   number_keys         = ['price', 'numeric_col', 'revenue']
-   numeric_combine     = sum([categorize_results[group] for group in number_keys], [])
+   money_keys   = ['price', 'revenue']
+   special_cols = [col for col in sales_df.columns if col in [r.qty, r.ean]]
+   numeric_cols = sum([categorize_results[group] for group in money_keys], special_cols)
    print('categorize_results', categorize_results)
    # 27-06-26 Update: Vì fetch từ sheet, columns 100% là string nên cần coerce ngay từ bước này
-   sales_df[numeric_combine] = sales_df[numeric_combine].apply(pd.to_numeric, axis=0, errors='coerce', downcast='integer')
+   # 06-07-26 Update: Fetch từ Drive CSV nên không còn string type nên bỏ 'numeric_col' khỏi 'money'
+   sales_df[numeric_cols] = sales_df[numeric_cols].apply(pd.to_numeric, axis=0, errors='coerce', downcast='integer')
    #endregion
 
    #region #? Validating Revenue | Recovering Date

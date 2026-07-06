@@ -14,25 +14,27 @@ import streamlit as st
 import pandas as pd
 import duckdb
 SS = st.session_state
-#region IDs
-ledger_FOLDER    = '1f5YXBV-WgLJLfCsIDqIy5x_X2k2EhV5y'
-ledger_UPLOAD_ID = '1EM0gi30at2Rb4cnxCr-C2vZ6CQl3PwpH'
-ledger_FILE_NAME = 'ETP_stock_ledger.parquet'
-
-SECRET_KEY       = st.secrets['gcs_connections']
-FOLDER_ID        = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
-FILE_LIST        = [
-    'DASHBOARD_Run_Forest_Run.parquet',
-    'DASHBOARD_stock_ledger.parquet',
-    'DASHBOARD_master_product.csv',
-    'DEMO_stock_ledger_dummy.csv',
-    'DEMO_price_cat_ledger.csv',
-    'DEMO_Anonym_Price.csv',
-    'DEMO_sales_dummy_1000.csv',
-    'DEMO_TRAFFIC.parquet',
-    'random_forest.pkl'
-]
-#endregion
+SECRET_KEY = st.secrets['gcs_connections']
+class authID:
+    folder_id   : str = '1f5YXBV-WgLJLfCsIDqIy5x_X2k2EhV5y'
+    ledger_id   : str = '1EM0gi30at2Rb4cnxCr-C2vZ6CQl3PwpH'
+    ledger_name : str = 'ETP_stock_ledger.parquet'
+    sales_id    : str = '18Y60_QRa2n_XYoBy4NdZ_0WHDYOMU8MU'
+    sales_name  : str = 'apple_sales_data.csv'
+    file_list   : list = ['ETP_stock_ledger.parquet', 'apple_sales_data.csv']
+class demoID:
+    folder_id: str   = '1ti2XBRVZeXtuBEqDlp8pKQjE-moUe253'
+    file_list: list   = [
+        'DASHBOARD_Run_Forest_Run.parquet',
+        'DASHBOARD_stock_ledger.parquet',
+        'DASHBOARD_master_product.csv',
+        'DEMO_stock_ledger_dummy.csv',
+        'DEMO_price_cat_ledger.csv',
+        'DEMO_Anonym_Price.csv',
+        'DEMO_sales_dummy_1000.csv',
+        'DEMO_TRAFFIC.parquet',
+        'random_forest.pkl'
+    ]
 
 #region Connections
 @st.cache_resource(show_spinner='Khởi tạo kết nối tới Google API')
@@ -89,44 +91,48 @@ def get_google_connections(key = SECRET_KEY):
 #endregion
 
 #region Google Sheets
-@st.cache_data(ttl=3600, show_spinner='Fetching data from Google Sheets...')
-def load_sales_sheet(
-    sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
-    gid      : int = 0,
-    tab      : str = 'combine',
-    columns  : str = '!A:AA'
-) -> pd.DataFrame:
-    """
-    ## fetch data from googlesheets using gid_id, fallback with tab_name
-    """
-    try:
-        connections = get_google_connections()
-        service     = connections['sheets']
-        try:
-            sheets_metadata = service.spreadsheets().get(spreadsheetId = sheet_id).execute()
-            tab = [m['properties']['title'] for m in sheets_metadata['sheets'] if m['properties']['sheetId']==gid][0]
-        except Exception as e:
-            print(f'gid did not match: {e}')
+# def load_sales_sheet(
+#     sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
+#     gid      : int = 0,
+#     tab      : str = 'combine',
+#     columns  : str = '!A:AA'
+# ) -> pd.DataFrame:
+#     """
+#     ## fetch data from googlesheets using gid_id, fallback with tab_name
+#     """
+#     try:
+#         connections = get_google_connections()
+#         service     = connections['sheets']
+#         try:
+#             sheets_metadata = service.spreadsheets().get(spreadsheetId = sheet_id).execute()
+#             tab = [m['properties']['title'] for m in sheets_metadata['sheets'] if m['properties']['sheetId']==gid][0]
+#         except Exception as e:
+#             print(f'gid did not match: {e}')
         
-        range_name = f"'{tab}'{columns}"
-        sheet_object = service.spreadsheets().values().get(
-            spreadsheetId = sheet_id, 
-            range = range_name
-        ).execute()
+#         range_name = f"'{tab}'{columns}"
+#         sheet_object = service.spreadsheets().values().get(
+#             spreadsheetId = sheet_id, 
+#             range = range_name
+#         ).execute()
         
-        list_of_records = sheet_object.get('values', [])
-        if not list_of_records:
-            print('Sheet Empty')
-            return pd.DataFrame()
+#         list_of_records = sheet_object.get('values', [])
+#         if not list_of_records:
+#             print('Sheet Empty')
+#             return pd.DataFrame()
         
-        # Đằng nào cũng bị object toàn bộ, clean luôn cho sạch
-        data = pd.DataFrame(data=list_of_records[1:], columns=colMap.values())
-        data = data.replace(r'^\s*$', pd.NA, regex=True).astype('string')
-        return data
+#         # Đằng nào cũng bị object toàn bộ, clean luôn cho sạch
+#         data = pd.DataFrame(data=list_of_records[1:], columns=colMap.values())
+#         data = data.replace(r'^\s*$', pd.NA, regex=True).astype('string')
+#         return data
     
-    except Exception as e:
-        print(f"Ối giồi ôi: {e}")
-        return pd.DataFrame()
+#     except Exception as e:
+#         print(f"Ối giồi ôi: {e}")
+#         return pd.DataFrame()
+
+def normalize_sales_sheet(sales_raw: pd.DataFrame):
+    data = sales_raw.replace(r'^\s*$', pd.NA, regex=True)
+    data.columns = colMap.values()
+    return data 
 #endregion
 
 #region Google Drive
@@ -163,19 +169,27 @@ def fetch_worker(
     except Exception:
         return file_name, None
 @st.cache_data(show_spinner='Fetching data from Google Drive...')
-def load_files_from_drive(
-    folder_id: str  = FOLDER_ID, 
-    file_list: list = FILE_LIST
-    ) -> dict:
+def load_files_from_drive(trigger: str  = None) -> dict:
     """
+    ## Truyền `trigger` = Auth Data Bundle
+    ## Blank = Demo Data Bundle
     ### Hàm đọc toàn bộ files yêu cầu từ Drive và Cached RAM.
     ### Chạy lần đầu ở app.py, các page khác khi gọi hàm sẽ không cần fetch lại.
     """
+    if trigger is not None:
+        folder_id = authID.folder_id
+        file_list = authID.file_list
+    else:
+        folder_id = demoID.folder_id
+        file_list = demoID.file_list
+    
     if isinstance(file_list, str):
         file_list = [file_list]
+
     with ThreadPoolExecutor(max_workers=len(file_list)) as executor:
         results = executor.map(lambda name: fetch_worker(folder_id, name), file_list)
     return {file_name: df for file_name, df in results if df is not None}
+
 #endregion
 
 #region Upload to Drive
@@ -199,8 +213,8 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
         buffer_to_media  = MediaIoBaseUpload(parquet_buffer, mimetype='application/octet-stream', resumable=False)
         try:
             updated_file = google_service.files().update(
-                fileId     = ledger_UPLOAD_ID,
-                body       = {'name': ledger_FILE_NAME},     
+                fileId     = authID.ledger_id,
+                body       = {'name': authID.ledger_name},     
                 media_body = buffer_to_media,
                 fields     = 'id, name'
             ).execute(num_retries = 3)
@@ -309,7 +323,7 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
             progress_bar.progress(100)
             status_text.markdown('⏳ Uploading...')
             upload_worker(parquet_buffer, google_service)
-            load_files_from_drive.clear(ledger_FOLDER, ledger_FILE_NAME)
+            load_files_from_drive.clear(get_drive_trigger())
             SS.upload_worker = 'dimiss'
             SS.upload_worker_counter += 1
             st.rerun(scope='app')
@@ -390,7 +404,7 @@ def app_data_bundle(
     sales_raw: pd.DataFrame,
     stock_raw: pd.DataFrame
 ):
-    sales_data = sales_raw.pipe(authentic_pipeline)
+    sales_data = sales_raw.pipe(normalize_sales_sheet).pipe(authentic_pipeline)
     stock_info_from_sales = (
         sales_data
         .dropna(subset=c.price)
@@ -482,6 +496,21 @@ def demo_data_bundle(
 
     return stock_ledger, raw, min_date, max_date
 #endregion
+
+def get_drive_trigger(
+    service = get_google_connections()['drive'],
+    file_id = authID.sales_id,
+)-> str:
+    try:
+        meta = service.files().get(fileId=file_id, fields="modifiedTime").execute()
+        utc_str = meta.get("modifiedTime")
+        if not utc_str:
+            return ""
+        modified_time = pd.to_datetime(utc_str).tz_convert("Asia/Ho_Chi_Minh").strftime("%H:%M:%S %d/%m/%Y")
+        return "at " + modified_time
+    
+    except Exception as e:
+        return "network_error_fallback"
 
 def get_current_past_config(
     max_date: pd.Timestamp 

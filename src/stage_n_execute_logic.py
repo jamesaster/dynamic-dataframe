@@ -94,17 +94,19 @@ def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
                 df_new[c] = time_format(df, c)
         if key == 'date_col':
             df_new[cols] = df[cols]      
-        # Update 28-06-26: Đã pd.to_numeric[price, revenue, numeric_col] trước khi vào hàm
+        # Update 06-07-26: Đã pd.to_numeric[price, revenue] trước khi vào hàm
         if key == 'price':
             df_new[cols] = df[cols]
         if key == 'revenue':
             df_new[cols] = df[cols]
         if key == 'numeric_col':
-            df_new[cols] = df[cols].fillna(0)
+            df_new[cols] = df[cols].apply(pd.to_numeric, axis=0, errors='coerce', downcast='integer').fillna(0)
         if key == 'boolean_col':
             df_new[cols] = df[cols].astype('boolean')
         if key == 'category_col':
             continue
+
+    # df[cols].apply(pd.to_numeric, axis=0, errors='coerce', downcast='integer')
 
     str_keys = ['string_col', 'phone_col', 'category_col']
     str_cols = sum([final_results.get(key, []) for key in str_keys], [])
