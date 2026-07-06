@@ -10,7 +10,7 @@ from src import *
 from visuals import *
 from src.columns import colName as c, colFormat as f, stockCol as s
 from sections.dashboard import *
-is_james = SS.get('is_james')
+is_james = SS.get('is_james', False)
 trigger  = get_drive_trigger()
 time_str, date_str = (trigger.split(maxsplit=1) + [None])[:2]
 #region #? 0.   SOURCE
@@ -67,12 +67,11 @@ SS.analysis_data = auth_sales
 demo_data = demo_data_bundle()
 stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data
  
-lastest_date = sales_data[c.date].iloc[-1].normalize()
-current_ts   = (
-    f"<strong>{'Today' if lastest_date == pd.Timestamp.today().normalize() else 'on ' + date_str}</strong>"
-    f" at <strong>{time_str}</strong>"
-)
 if is_james:
+    current_ts   = (
+        f"<strong>{'Today' if sales_data[c.date].iloc[-1].normalize() == pd.Timestamp.today().normalize() else 'on ' + date_str}</strong>"
+        f" at <strong>{time_str}</strong>"
+    )
     dash_title = st.secrets.env.store
     dash_sub   = f"""
     <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 20px; margin-top: 0px;">
@@ -87,6 +86,12 @@ else:
             Data is synthesized from real-world patterns, ensuring the business logic remains strictly authentic.
         </div>
         """
+if sales_data is None or sales_data.empty:
+    if st.button('Reload'):
+        load_files_from_drive.clear()
+        load_files_from_drive.clear(get_drive_trigger())
+    else:
+        st.stop()
 #endregion (Google API)
 
 #region #* Upload Ledger

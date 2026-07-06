@@ -433,7 +433,7 @@ def demo_data_bundle(
     for name in file_list:
         if name not in all_raw_data:
             st.error(f'Gặp lỗi khi load file {name}')
-            return pd.DataFrame(), pd.DataFrame(), None, None
+            return pd.DataFrame(), pd.DataFrame(), pd.Timestamp.today().normalize(), pd.Timestamp.today().normalize()
 
     # Bốc thẳng dữ liệu từ RAM (2 df dưới chỉ cần tạo biến để duckdb đọc ngầm)
     df_clean_sales    = all_raw_data[_SALES]

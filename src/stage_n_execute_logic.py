@@ -106,12 +106,10 @@ def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
         if key == 'category_col':
             continue
 
-    # df[cols].apply(pd.to_numeric, axis=0, errors='coerce', downcast='integer')
-
     str_keys = ['string_col', 'phone_col', 'category_col']
     str_cols = sum([final_results.get(key, []) for key in str_keys], [])
     if str_cols:
-        df_new[str_cols] = df[str_cols].replace(r'^\s*$', '-', regex=True).astype('string')
+        df_new[str_cols] = df[str_cols].replace(r'^\s*$', '-', regex=True).astype('string').fillna('-')
 
     try:
         df_new = df_new[df.columns]
