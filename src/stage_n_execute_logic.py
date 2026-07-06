@@ -1,5 +1,4 @@
 import pandas as pd
-import json
 from src.datetime_logic import time_format
 from src.utils import is_boolean, is_datetime, is_alo, is_money, is_numeric, is_category
 
@@ -110,7 +109,7 @@ def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
     str_keys = ['string_col', 'phone_col', 'category_col']
     str_cols = sum([final_results.get(key, []) for key in str_keys], [])
     if str_cols:
-        df_new[str_cols] = df_new[str_cols].replace(r'^\s*$', '-', regex=True).astype('string')
+        df_new[str_cols] = df[str_cols].replace(r'^\s*$', '-', regex=True).astype('string')
 
     try:
         df_new = df_new[df.columns]

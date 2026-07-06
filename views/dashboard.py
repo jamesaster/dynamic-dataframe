@@ -88,7 +88,6 @@ if is_james:
 #region #* Upload Ledger
 with st.sidebar:
     upload_stockLedger(is_james, auth_stock)
-
 #endregion
 
 #endregion #? END
