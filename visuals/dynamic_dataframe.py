@@ -434,19 +434,19 @@ def get_mini_data(
     mask = df[_col] == _val
     data_frame: pd.DataFrame = df.loc[mask]
 
+    sort_by    = agg_target if agg_target == c.invoice else c.revenue
     agg_target = [agg_target] #? Phải trong list
     agg_config = {c.qty: 'sum', c.revenue: 'sum'}
 
-    agg_sort = c.revenue
     agg = (data_frame
             .groupby(agg_target)
             .agg(agg_config)
-            .sort_values(agg_sort, ascending=False)
+            .sort_values(sort_by, ascending=False)
             .reset_index()
             )
     
-    total_revenue = agg[agg_sort].sum()
-    agg['pct'] = ((agg[agg_sort] / total_revenue))*100
+    total_revenue = agg[c.revenue].sum()
+    agg['pct'] = ((agg[c.revenue] / total_revenue))*100
 
     cal_col_total = lambda c: agg[c].sum(axis=0)
 
@@ -524,10 +524,14 @@ def interact_DataFrame(
     if not isinstance(df_interaction, pd.DataFrame) or df_interaction.empty:
         st.info('No records found.', icon='🐧')
         return
-    def blue_col_style(df: pd.DataFrame, cols: list, color='#1F6FEB'):
-        cols = [c for c in cols if c in df.columns]
-        styling = {'subset': cols, 'font-weight': '500', 'color': color}
-        return df.style.set_properties(**styling)
+    def blue_col_style(df: pd.DataFrame, blue_cols: list, color='#1F6FEB'):
+        cols = [col for col in blue_cols if col in df.columns]
+        blue_styling  = {'subset': cols, 'font-weight': '500', 'color': color}
+        first_styling = {'subset': (df.index[0], [c.qty, c.revenue]), 'font-weight': '500', 'color': "#F97744"}
+        styled = df.style.set_properties(**blue_styling)
+        if len(df.columns) > 5:
+            return styled
+        return styled.set_properties(**first_styling)
     #region function local config:
     CC = st.column_config
     _space_ = "\u2000"
@@ -554,7 +558,7 @@ def interact_DataFrame(
             "card"   : CC.NumberColumn("Credit", format="%,d"),
             "qr_code": CC.NumberColumn("QR-Code", format="%,d"),
             "pct"    : CC.ProgressColumn("Ratio %", format="%.1f%%", min_value=0, max_value=100, width=160),
-            "date"   : CC.DateColumn(_space_+ "Date", format="DD-MM-YY", width=80, alignment="center"),
+            "date"   : CC.DateColumn(_space_+ "Date", format="DD-MM-YYYY", width=80, alignment="center"),
             "time"   : CC.TimeColumn(_space_+ "Time", format="hh:mm A", width=80, alignment="center"),
             "id"     : CC.TextColumn("ID", alignment="left", width=60),
             "name"   : CC.TextColumn("Customer Name", width=140),
@@ -830,8 +834,8 @@ def finder(
         final_mask = name_mask | else_mask
         if not final_mask.any():
             return None, None
-        lookup_output = df_lookup.loc[final_mask, show_cols].head(50)
-    
+        lookup_output = df_lookup.loc[final_mask, show_cols].tail(50).sort_values(c.date, ascending=False, ignore_index=True)
+
     # st.dataframe selection trả về (iloc,loc) nên không cần sort, 
     # chỉ cần #! reset_index và dùng .loc khi lấy data click
     #endregion
