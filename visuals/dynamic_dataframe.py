@@ -6,6 +6,7 @@ import re
 import unicodedata
 import streamlit as st
 from src.columns import colName as c
+from src.utils import today_hanoi
 SS = st.session_state
 # colNamed
 
@@ -105,7 +106,7 @@ def query_df_date(
     local_dict = {}
 
     # Define Today = ( Today or last data day )
-    today = pd.Timestamp.today().normalize()
+    today = today_hanoi()
     if not (df[_date] == today).any():
         today = df[_date].max()
 

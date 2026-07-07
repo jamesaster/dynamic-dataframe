@@ -1,5 +1,5 @@
 # 1. is_ -> Bool
-from src.utils import is_boolean, is_datetime, is_alo, is_money, is_numeric, is_category, fill_origin_price, reset_invoice_no, ready_order, staff_rename
+from src.utils import *
 
 # 2. revenue validating
 from src.revenue_logic import cal_revenue, rev_validate

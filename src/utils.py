@@ -152,3 +152,9 @@ def staff_rename(df_origin: pd.DataFrame, _staff: str='sa')-> pd.DataFrame:
         df = df.drop(_staff, axis=1)
     print(f"{f'Debug [staff_rename] Created staff column':<50} | Unique count: {df['staff'].nunique()}")
     return df
+
+def today_hanoi():
+    """
+    ### Không sợ lệch múi giờ server Streamlit.
+    """
+    return pd.Timestamp.today(tz='Asia/Ho_Chi_Minh').normalize().tz_localize(None)

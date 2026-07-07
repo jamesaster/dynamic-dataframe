@@ -1,6 +1,7 @@
 from src.columns import colName as c, colFormat as f, stockCol as s, colRaw_mapping as colMap, colRaw as r
 from src.stockledger import process_stockLedger
 from src.product_logic import repair_product
+from src.utils import today_hanoi
 from core.run_auth_pipe import authentic_pipeline
 from concurrent.futures import ThreadPoolExecutor
 from googleapiclient.http import MediaIoBaseUpload
@@ -35,6 +36,7 @@ class demoID:
         'DEMO_TRAFFIC.parquet',
         'random_forest.pkl'
     ]
+
 
 #region Connections
 @st.cache_resource(show_spinner='Khởi tạo kết nối tới Google API')
@@ -260,7 +262,7 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
         width     = 'stretch',
         disabled  = not is_james
     ):
-        today = pd.Timestamp.today().normalize()
+        today = today_hanoi()
         sub_header = (
             'Up To Date' if drop_anchor == today else
             f'Thiếu data từ: **{drop_anchor.strftime('%d-%m-%Y')}**'
@@ -466,7 +468,7 @@ def demo_data_bundle(
     for name in file_list:
         if name not in all_raw_data:
             st.error(f'Gặp lỗi khi load file {name}')
-            return pd.DataFrame(), pd.DataFrame(), pd.Timestamp.today().normalize(), pd.Timestamp.today().normalize()
+            return pd.DataFrame(), pd.DataFrame(), today_hanoi(), today_hanoi()
 
     # Bốc thẳng dữ liệu từ RAM (2 df dưới chỉ cần tạo biến để duckdb đọc ngầm)
     df_clean_sales    = all_raw_data[_SALES]

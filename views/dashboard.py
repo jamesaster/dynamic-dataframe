@@ -75,7 +75,7 @@ if sales_data is None or sales_data.empty:
         st.stop()
 if is_james:
     current_ts   = (
-        f"<strong>{'Today' if sales_data[c.date].iloc[-1].normalize() == pd.Timestamp.today().normalize() else 'on ' + date_str}</strong>"
+        f"<strong>{'Today' if sales_data[c.date].iloc[-1].normalize() == today_hanoi() else 'on ' + date_str}</strong>"
         f" at <strong>{time_str}</strong>"
     )
     dash_title = st.secrets.env.store
