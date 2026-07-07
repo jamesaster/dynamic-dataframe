@@ -1,6 +1,7 @@
 import pandas as pd
 from src.datetime_logic import time_format
 from src.utils import is_boolean, is_datetime, is_alo, is_money, is_numeric, is_category
+from src.columns import colRaw
 
 def stage_0(df: pd.DataFrame):
     #! stage_0: CAT_BY_NAME
@@ -106,6 +107,8 @@ def execution(df: pd.DataFrame, final_results: dict)-> pd.DataFrame:
         if key == 'category_col':
             continue
 
+    # Update 07-07-26: astype(Int64) 2 cột (invoice, ean) để không bị .0 trước khi string hóa
+    df[[colRaw.invoice, colRaw.ean]] = df[[colRaw.invoice, colRaw.ean]].astype('Int64')
     str_keys = ['string_col', 'phone_col', 'category_col']
     str_cols = sum([final_results.get(key, []) for key in str_keys], [])
     if str_cols:

@@ -158,9 +158,9 @@ def fetch_worker(
         if ext in ['xlsx', 'xls']:
             df = pd.read_excel(BytesIO(media_content))
         elif ext == 'csv':
-            df = pd.read_csv(BytesIO(media_content))
+            df = pd.read_csv(BytesIO(media_content), engine='pyarrow')
         elif ext == 'parquet':
-            df = pd.read_parquet(BytesIO(media_content))
+            df = pd.read_parquet(BytesIO(media_content), engine='pyarrow')
         elif ext == 'pkl':
             df = BytesIO(media_content)
         else:

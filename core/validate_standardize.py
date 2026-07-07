@@ -2,7 +2,7 @@ from src.columns import colRaw as r
 import pandas as pd
 from src import *
 
-def smart_sales_clean (sales_raw: pd.DataFrame, config: dict) -> pd.DataFrame:
+def smart_clean_module(sales_raw: pd.DataFrame, config: dict) -> pd.DataFrame:
    """
    ## Stage 2 - Data Validation & Standardization
    Tiền xử lý dữ liệu tự động dựa trên phân loại dtype, logic doanh thu và ngày tháng.
@@ -25,26 +25,25 @@ def smart_sales_clean (sales_raw: pd.DataFrame, config: dict) -> pd.DataFrame:
    na_mask = sales_raw[validate_cols].isna().any(axis=1)
    print('Drop NA columns[:4].any():', na_mask.sum(), 'rows')
    sales_df = sales_raw.dropna(subset=validate_cols, how='any', ignore_index=True).copy()
-
+   
    #region #? Categorizing Column
    categorize_results  = stage_1(stage_0(sales_df))
    money_keys   = ['price', 'revenue']
-   special_cols = [col for col in sales_df.columns if col in [r.qty, r.ean]]
+   special_cols = [col for col in sales_df.columns if col in [r.qty]]
    numeric_cols = sum([categorize_results[group] for group in money_keys], special_cols)
    print('categorize_results', categorize_results)
    # 27-06-26 Update: Vì fetch từ sheet, columns 100% là string nên cần coerce ngay từ bước này
    # 06-07-26 Update: Fetch từ Drive CSV nên không còn string type nên bỏ 'numeric_col' khỏi 'money'
    sales_df[numeric_cols] = sales_df[numeric_cols].apply(pd.to_numeric, axis=0, errors='coerce', downcast='integer')
    #endregion
-
+   
    #region #? Validating Revenue | Recovering Date
    sales_df = rev_validate(sales_df, config['payment_cols'], config['disc_cols'], categorize_results)
    sales_df[r.date], _ = recover_date(sales_df, r.date, config['date_anchor'])
    #endregion
-
+   
    #* After cleaning 
    sales_df = execution(sales_df, categorize_results)
-
    return sales_df
 
 

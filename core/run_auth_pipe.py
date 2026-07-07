@@ -25,7 +25,7 @@ def authentic_pipeline(sales_raw: pd.DataFrame)-> pd.DataFrame:
     log = io.StringIO()
     with redirect_stdout(log):
         df = (sales_raw
-            .pipe(smart_sales_clean,
+            .pipe(smart_clean_module,
                 config = config
             )
             .pipe(bf_fill, 
