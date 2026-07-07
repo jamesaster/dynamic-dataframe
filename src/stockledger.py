@@ -263,7 +263,7 @@ def get_inventory_as_of(
     total_value = (lookup_result[s.end] * lookup_result[s.price]).sum()
 
     return lookup_result
-    
+
 @st.cache_data
 def get_specific_inventory_as_of(
     ledger_df     : pd.DataFrame,
