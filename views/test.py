@@ -72,7 +72,7 @@ def sales_pipeline_demo(raw_df: pd.DataFrame, anonym: pd.DataFrame, traffic: pd.
 
                     # Bước 2
                     st.write('**Bước 2:** Đang chuẩn hóa dữ liệu (Smart Data Pipeline)...')
-                    df_cleaned = raw_df.pipe(smart_sales_clean, config=config)
+                    df_cleaned = raw_df.pipe(smart_clean_module, config=config)
 
                     # Bước 3
                     st.write('**Bước 3:** Đang ẩn danh hóa dữ liệu (Anonymization)...')

@@ -13,6 +13,8 @@ from sections.dashboard import *
 is_james = SS.get('is_james', False)
 trigger  = get_drive_trigger()
 time_str, date_str = (trigger.split(maxsplit=1) + [None])[:2]
+
+
 #region #? 0.   SOURCE
 
 #region (local)
@@ -65,7 +67,6 @@ SS.analysis_data = auth_sales
 
 demo_data = demo_data_bundle()
 stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data
-
 if sales_data is None or sales_data.empty:
     if st.button('Reload'):
         load_files_from_drive.clear()
