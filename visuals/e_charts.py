@@ -1159,7 +1159,6 @@ def get_tree_data(
     REQUIRE_COLS = layers + [_rev] + [_qty]
 
     df_temp = df[REQUIRE_COLS]
-    df_temp.loc[:, c.subcat] = df_temp.loc[:, c.subcat].str.replace(r'^Ip', 'iP', regex=True)
 
     #? 1. Groupby tất cả layer, tối giản data cho các bước sau
     df_grouped = df_temp.groupby(layers)[[_rev] + [_qty]].sum().reset_index()
