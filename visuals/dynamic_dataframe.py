@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import time
+import io
 import re
 import unicodedata
 import streamlit as st
@@ -524,10 +525,11 @@ def interact_DataFrame(
     if not isinstance(df_interaction, pd.DataFrame) or df_interaction.empty:
         st.info('No records found.', icon='🐧')
         return
-    def blue_col_style(df: pd.DataFrame, blue_cols: list, color='#1F6FEB'):
-        cols = [col for col in blue_cols if col in df.columns]
-        blue_styling  = {'subset': cols, 'font-weight': '500', 'color': color}
-        first_styling = {'subset': (df.index[0], [c.qty, c.revenue]), 'font-weight': '500', 'color': "#F97744"}
+    def interact_style(df: pd.DataFrame, blue_cols: list, color='#1F6FEB'):
+        blue_cols     = [col for col in blue_cols if col in df.columns]
+        blue_styling  = {'subset': blue_cols, 'font-weight': '500', 'color': color}
+        orange_cols   = df.columns[:-1]
+        first_styling = {'subset': (df.index[0], orange_cols), 'font-weight': '600', 'color': "#EE703E"}
         styled = df.style.set_properties(**blue_styling)
         if len(df.columns) > 5:
             return styled
@@ -542,7 +544,7 @@ def interact_DataFrame(
 #region # [interact_DataFrame] #? 1. Show Interaction Table
 
     st.dataframe(
-        data           = blue_col_style(df_interaction, styled_cols),
+        data           = interact_style(df_interaction, styled_cols),
         column_config  = {
             "invoice": CC.TextColumn("Invoice", width=None if tab_mode else 70, alignment="right" if tab_mode else "center"),
             "qty"    : CC.NumberColumn("Quantity" if tab_mode else "Qty", format="%,d", width=None if tab_mode else 50, alignment="right"),
@@ -1036,4 +1038,70 @@ def finder_memory(
     #endregion
 #endregion
 
+#region #* Download Dataframe
+@st.fragment
+def download_dataframe(data: pd.DataFrame, date: pd.Timestamp, prefix: str, suffix: str, key: str):
+    # region 1. Validation & Keys Setup
+    if not isinstance(data, pd.DataFrame) or data.empty:
+        return
+    d_key = key + prefix
+    p_key = key + suffix
+    # endregion
 
+    # region 2. Helper Functions
+    def download_reset(counter_key):
+        if counter_key not in SS:
+            SS[counter_key] = 0
+        SS[counter_key] = (SS[counter_key] + 1) % 10
+    def df_to_markdown(df):
+        headers = list(df.columns)
+        lines = ["| " + " | ".join(map(str, headers)) + " |"]
+        lines.append("| " + " | ".join(["---"] * len(headers)) + " |")
+        for _, row in df.iterrows():
+            lines.append("| " + " | ".join(map(str, row.values)) + " |")
+        return "\n".join(lines)
+    # endregion
+
+    # region 3. UI Component (Popover & Selectbox)
+    with st.popover('Download', width='stretch', on_change=download_reset, args=(d_key, ), key=f'popo_{SS.get(p_key)}'):
+        _format = st.selectbox(
+            label   = 'Choose format',
+            options = ['Select Format', 'xlsx', 'csv', 'md'],
+            key     = f'format_{SS.get(d_key)}',
+            index   = 0,
+            label_visibility ='collapsed'
+            )
+        _name   = "_".join([
+            date.strftime('%Y-%b-%d').lower(),
+            prefix.upper().replace(' ', '_'),
+            f"{suffix}.{_format}".lower()
+        ]).replace(' ', '_')
+        _mime   = {
+            'xlsx' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'csv'  : 'text/csv',
+            'md'   : 'text/markdown'
+        }.get(_format)
+        if _format == 'Select Format': return
+        # endregion
+
+        # region 4. Data Export & Download Button
+        _buffer = io.BytesIO()
+        export_config = {
+            "xlsx": lambda df: df.to_excel(_buffer, index=False),
+            "csv": lambda df: _buffer.write(df.to_csv(index=False).encode("utf-8")),
+            "md": lambda df: _buffer.write(df_to_markdown(df).encode("utf-8")),
+        }
+        export_config[_format](data)
+        _buffer.seek(0)
+        export_data = _buffer.getvalue()
+        st.download_button(
+            label     = '',
+            data      = export_data,
+            file_name = _name,
+            mime      = _mime,
+            on_click  = download_reset, args=(p_key, ),
+            icon      = ':material/download:',
+            width     = 'stretch'
+        )
+        # endregion
+# endregion

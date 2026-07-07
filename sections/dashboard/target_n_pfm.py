@@ -3,7 +3,9 @@ import streamlit as st
 from src.columns import colName as c, stockCol as s
 from visuals.visuals_helper import *
 from visuals.e_charts import *
+from visuals.dynamic_dataframe import download_dataframe
 from src.stockledger import *
+import io
 
 #region Helper
 SS = st.session_state
@@ -324,23 +326,33 @@ def performance_and_target(
                     label_visibility = 'collapsed',
                     key              = low_supply_KEY
                     )
-                ledger_view = st.radio(
+                ledger_view  = st.radio(
                     label            = 'Ledger_View',
                     options          = ['Table', 'Chart'],
                     horizontal       = True,
                     label_visibility = 'collapsed',
                     key              = tab_key + '_ledger_view'
                     )
-                
-                with st.popover('Logic', icon=':material/code:', width='content', key='show_code_score_ledger', type='tertiary'):
-                    st.code(get_source_code(get_compact_stockledger), language='python', height='stretch')
-                    st.code(get_source_code(category_stock_status), language='python', height='stretch')
+                download_key = 'download_counter'
+                slot_key     = f'holder_{download_key}'
+                if slot_key not in SS:
+                    SS[slot_key] = st.empty()
+                download_slot = SS[slot_key]
+
             with led_header:
                 led_main_title = 'Inventory' if ledger_view == 'Table' else 'Ledger Scatter'
                 styled_header(led_main_title + ' \u2022', cat_selected or 'All SKU')
             
             #* Show Table & Chart
             scored_ledger = category_stock_status(compact_ledger, cat_selected, show_low_supply == 'Low Supply')
+            with download_slot:
+                download_dataframe(
+                data    = scored_ledger,
+                date    = today,
+                prefix  = (cat_selected or 'all category'),
+                suffix  = (show_low_supply if show_low_supply == 'Low Supply' else ''),
+                key     = download_key
+                )
             if ledger_view == 'Table':
                 interact_Combo(
                     stock_ledger    = stock_ledger,
