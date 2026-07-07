@@ -90,49 +90,60 @@ def get_google_connections(key = SECRET_KEY):
     }
 #endregion
 
-#region Google Sheets
-# def load_sales_sheet(
-#     sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
-#     gid      : int = 0,
-#     tab      : str = 'combine',
-#     columns  : str = '!A:AA'
-# ) -> pd.DataFrame:
-#     """
-#     ## fetch data from googlesheets using gid_id, fallback with tab_name
-#     """
-#     try:
-#         connections = get_google_connections()
-#         service     = connections['sheets']
-#         try:
-#             sheets_metadata = service.spreadsheets().get(spreadsheetId = sheet_id).execute()
-#             tab = [m['properties']['title'] for m in sheets_metadata['sheets'] if m['properties']['sheetId']==gid][0]
-#         except Exception as e:
-#             print(f'gid did not match: {e}')
+#region Google Sheets / Normalizer
+def load_sales_sheet(
+    sheet_id : str = '1o7DlHmsLAu8tdMtUplytq-5Tuh25o8OC0VgI_kUcFqA',
+    gid      : int = 0,
+    tab      : str = 'combine',
+    columns  : str = '!A:AA'
+) -> pd.DataFrame:
+    """
+    ## fetch data from googlesheets using gid_id, fallback with tab_name
+    """
+    try:
+        connections = get_google_connections()
+        service     = connections['sheets']
+        try:
+            sheets_metadata = service.spreadsheets().get(spreadsheetId = sheet_id).execute()
+            tab = [m['properties']['title'] for m in sheets_metadata['sheets'] if m['properties']['sheetId']==gid][0]
+        except Exception as e:
+            print(f'gid did not match: {e}')
         
-#         range_name = f"'{tab}'{columns}"
-#         sheet_object = service.spreadsheets().values().get(
-#             spreadsheetId = sheet_id, 
-#             range = range_name
-#         ).execute()
+        range_name = f"'{tab}'{columns}"
+        sheet_object = service.spreadsheets().values().get(
+            spreadsheetId = sheet_id, 
+            range = range_name
+        ).execute()
         
-#         list_of_records = sheet_object.get('values', [])
-#         if not list_of_records:
-#             print('Sheet Empty')
-#             return pd.DataFrame()
+        list_of_records = sheet_object.get('values', [])
+        if not list_of_records:
+            print('Sheet Empty')
+            return pd.DataFrame()
         
-#         # Đằng nào cũng bị object toàn bộ, clean luôn cho sạch
-#         data = pd.DataFrame(data=list_of_records[1:], columns=colMap.values())
-#         data = data.replace(r'^\s*$', pd.NA, regex=True).astype('string')
-#         return data
+        # Đằng nào cũng bị object toàn bộ, clean luôn cho sạch
+        data = pd.DataFrame(data=list_of_records[1:], columns=colMap.values())
+        data = data.replace(r'^\s*$', pd.NA, regex=True).astype('string')
+        return data
     
-#     except Exception as e:
-#         print(f"Ối giồi ôi: {e}")
-#         return pd.DataFrame()
+    except Exception as e:
+        print(f"Ối giồi ôi: {e}")
+        return pd.DataFrame()
 
 def normalize_sales_sheet(sales_raw: pd.DataFrame):
     data = sales_raw.replace(r'^\s*$', pd.NA, regex=True)
     data.columns = colMap.values()
+    # Chuẩn hóa Sub LOB - bắt buộc (Bước sau map ngược lại vào stockLedger)
+    data[c.subcat] = data[c.subcat].str.title().str.replace(r'^Ip', 'iP', regex=True)
     return data 
+
+def normalize_stock_record(sales_data: pd.DataFrame, stock_raw: pd.DataFrame):
+    stock_info_from_sales = (
+    sales_data
+    .dropna(subset=c.price)
+    .drop_duplicates(subset=c.sku, keep='last', ignore_index=True)
+    [[c.sku, c.cat, c.subcat, c.price]]
+    )
+    return stock_raw.merge(stock_info_from_sales, how='left', on=c.sku)
 #endregion
 
 #region Google Drive
@@ -416,16 +427,9 @@ def app_data_bundle(
         st.rerun(scope='app')
     elif sales_raw is None:
         return [None] * 4
-    
-    sales_data = sales_raw.pipe(normalize_sales_sheet).pipe(authentic_pipeline)
-    stock_info_from_sales = (
-        sales_data
-        .dropna(subset=c.price)
-        .drop_duplicates(subset=c.sku, keep='last', ignore_index=True)
-        [[c.sku, c.cat, c.subcat, c.price]]
-        )
-    
-    stock_ledger = stock_raw.merge(stock_info_from_sales, how='left', on=c.sku)
+
+    sales_data   = sales_raw.pipe(normalize_sales_sheet).pipe(authentic_pipeline)
+    stock_ledger = normalize_stock_record(sales_data, stock_raw)
     sales_data   = repair_product(sales=sales_data, stock=stock_ledger)
     #! Chỉ dropna stock_ledger sau khi `repair_product`
     stock_ledger = stock_ledger.dropna(subset=s.cat, ignore_index=True)
