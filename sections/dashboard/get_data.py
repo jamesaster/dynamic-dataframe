@@ -1,4 +1,4 @@
-from src.columns import colName as c, colFormat as f, stockCol as s, colRaw_mapping as colMap
+from src.columns import colName as c, colFormat as f, stockCol as s, colRaw_mapping as colMap, colRaw as r
 from src.stockledger import process_stockLedger
 from src.product_logic import repair_product
 from core.run_auth_pipe import authentic_pipeline
@@ -130,11 +130,26 @@ def load_sales_sheet(
         return pd.DataFrame()
 
 def normalize_sales_sheet(sales_raw: pd.DataFrame):
-    data = sales_raw.replace(r'^\s*$', pd.NA, regex=True)
-    data.columns = colMap.values()
+    sales_raw.columns = colMap.values()
+    sales = sales_raw[sales_raw[r.cat] != 'BANK FEE']
+    sales = sales.replace(r'^\s*$', pd.NA, regex=True)
+
     # Chuẩn hóa Sub LOB - bắt buộc (Bước sau map ngược lại vào stockLedger)
-    data[c.subcat] = data[c.subcat].str.title().str.replace(r'^Ip', 'iP', regex=True)
-    return data 
+    sales[r.subcat] = sales[r.subcat].str.title().str.replace(r'^Ip', 'iP', regex=True)
+    
+    cat_list = ['3RD ACC', 'APPLE ACC', 'IPHONE', 'IPAD', 'WATCH', 'MAC'] + [None]
+    cat_map  = {
+        'ACCESSORIES (APPLE)': 'APPLE ACC',
+        'QOALA'              : 'APPLE ACC',
+        'IPHONE 16'          : 'IPHONE',
+    }
+    sales[r.cat] = sales[r.cat].replace(cat_map)
+    after_list = sales[r.cat].unique().tolist()
+
+    if set(cat_list) != set(after_list):
+        return print('cat không khớp', after_list)
+
+    return sales.reset_index(drop=True)
 
 def normalize_stock_record(sales_data: pd.DataFrame, stock_raw: pd.DataFrame):
     stock_info_from_sales = (
@@ -422,17 +437,16 @@ def app_data_bundle(
     sales_raw: pd.DataFrame,
     stock_raw: pd.DataFrame
 ):
-    if sales_raw is None and SS.get('is_james'):
+    if (sales_raw is None or stock_raw is None) and SS.get('is_james'):
         SS.pop('is_james', False)
         st.rerun(scope='app')
-    elif sales_raw is None:
+    elif sales_raw is None or stock_raw is None:
         return [None] * 4
 
     sales_data   = sales_raw.pipe(normalize_sales_sheet).pipe(authentic_pipeline)
     stock_ledger = normalize_stock_record(sales_data, stock_raw)
     sales_data   = repair_product(sales=sales_data, stock=stock_ledger)
-    #! Chỉ dropna stock_ledger sau khi `repair_product`
-    stock_ledger = stock_ledger.dropna(subset=s.cat, ignore_index=True)
+
     min_date     = sales_data[c.date].min()
     max_date     = sales_data[c.date].max()
 

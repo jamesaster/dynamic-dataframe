@@ -32,7 +32,7 @@ def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     }
     conds   = [prod_info[s.prod_name].str.contains(key, case=False, na=False) for key in cat_map]
     choices = [*cat_map.values()]
-    prod_info[s.cat] = np.select(conds, choices, 'ACCESSORIES (APPLE)')
+    prod_info[s.cat] = np.select(conds, choices, 'APPLE ACC')
     #endregion
 
     #region 4. Mapping
@@ -46,11 +46,8 @@ def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     sales     = sales.reset_index(drop=False)
     #endregion
 
-    #region LOG
     print(f'[repair_product] Auto Repaired {before_na - sales[s.cat].isna().sum()} rows')
-    print(f'[repair_product] Errors remain {sales[s.cat].isna().sum()} rows')
-    #endregion
-
+  
     #region 5. Fallback
     NA_mask    = sales[r.cat].isna()
     is_apple   = sales[r.ean].str.startswith('19', na = False) & NA_mask
@@ -59,7 +56,7 @@ def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     is_app_acc = (unit_price <= 3_990_000) & is_apple
     is_iphone  = (unit_price >= 20_000_000) & is_apple
 
-    sales.loc[is_app_acc, r.cat] = 'ACCESSORIES (APPLE)'
+    sales.loc[is_app_acc, r.cat] = 'APPLE ACC'
     sales.loc[is_3rd_acc, r.cat] = '3RD ACC'
     sales.loc[is_iphone, r.cat]  = 'IPHONE'
     print(f'[repair_product] Manual fallback -> Apple_ACC = {is_app_acc.sum()} | 3RD_ACC = {is_3rd_acc.sum()} | IPHONE = {is_iphone.sum()}')
@@ -71,17 +68,6 @@ def repair_product(*, sales: pd.DataFrame, stock: pd.DataFrame):
     NA_mask = sales[r.cat].isna()
     print(f'[repair_product] Error = {NA_mask.sum()}\n')
     #endregion
-
-    #region 6. Đồng bộ với pipeline
-    sales = sales[sales[r.cat] != 'BANK FEE']
-    cat_sync_map = {
-        'ACCESSORIES (APPLE)': 'APPLE ACC',
-        'QOALA'              : 'APPLE ACC',
-        'IPHONE 16'          : 'IPHONE',
-    }
-    sales[r.cat] = sales[r.cat].replace(cat_sync_map)
-    sales = sales.reset_index(drop=True)
-    #endregion
-
+    
     return sales[columns]
 

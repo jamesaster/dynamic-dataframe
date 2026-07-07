@@ -94,6 +94,19 @@ else:
         """
 #endregion (Google API)
 
+# today_test = pd.Timestamp.now().normalize()
+# sku_event  = {s.cat: 'IPHONE'}
+
+# stock_as_of = get_inventory_as_of(stock_ledger, today_test)
+# stock_as_of = stock_as_of[(stock_as_of[s.cat] == 'IPHONE') & (stock_as_of[s.end] > 0)].groupby([s.cat, s.sku, s.prod_name], as_index=False)[s.end].sum()
+
+# sku_as_of = get_specific_inventory_as_of(stock_ledger, today_test, today_test, tree_event=sku_event)
+
+# st.dataframe(stock_as_of)
+# st.info(f'Total IPHONE: {stock_as_of[s.end].sum()}')
+# st.dataframe(sku_as_of)
+
+
 #region #* Upload Ledger
 with st.sidebar:
     upload_stockLedger(is_james, stock_raw)

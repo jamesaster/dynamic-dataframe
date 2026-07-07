@@ -237,16 +237,16 @@ def get_inventory_as_of(
     """
 
     _ledger_date: str = f'ledger_{_date}'
-    LEDGER = ledger_df.rename(columns={_date: _ledger_date}).sort_values(by=_ledger_date, ascending=True)
+    LEDGER     = ledger_df.rename(columns={_date: _ledger_date}).sort_values(by=_ledger_date, ascending=True)
+    AS_OF_DATE = pd.Timestamp(AS_OF_DATE).as_unit('ns')
 
-    # valid_cols: loại bỏ các cột biến động không có giá trị logic
-    valid_cols  = [s.end, s.price] + [col for col in LEDGER.columns if col not in LEDGER.select_dtypes('number').columns]
-
+    # valid_cols: (Giữ cột end, bỏ cột số khác)
+    numeric_cols = LEDGER.select_dtypes('number').columns
+    valid_cols   = [col for col in LEDGER.columns if col not in numeric_cols] + [s.end]
 
     # Groupby purpose: extract unique product "sku" + according "lot_number" (if any)
     lookup_queue = LEDGER[AS_OF_BY].groupby(AS_OF_BY, as_index=False).head(1).copy()
     lookup_queue[_date] = AS_OF_DATE
-
     lookup_result = (
         pd.merge_asof(
             left  = lookup_queue,
@@ -260,7 +260,6 @@ def get_inventory_as_of(
             .dropna(subset=s.end, ignore_index=True)
             .convert_dtypes()
             )
-    total_value = (lookup_result[s.end] * lookup_result[s.price]).sum()
 
     return lookup_result
 
