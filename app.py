@@ -5,8 +5,6 @@ from sections.dashboard.get_data import *
 from core.run_auth_pipe import authentic_pipeline
 from src.columns import stockCol as s
 import numpy as np
-SS = st.session_state
-is_james    = SS.get('is_james')
 page_title  = 'Dynamic DataFrame'
 connections = cached_http_session()
 demo_cached = load_files_from_drive()

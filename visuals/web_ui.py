@@ -83,15 +83,13 @@ def sidebar_date(title: str, date_options: list, min_date=None, max_date=None):
     st.markdown(':material/history: **How far back should we go?**', help='Reference point: Today or the latest available data.')
     
     selected_key = 'period_selected'
-    
     if SS.get('period') == st.secrets.env.start_lab:
-        SS.is_james  = True
+        st.query_params.authorize = st.secrets.env.start_lab
         st.rerun(scope = 'app')
     elif SS.get('period') == st.secrets.env.end_lab:
-        SS.is_james  = False
+        st.query_params.authorize = st.secrets.env.end_lab
         st.rerun(scope = 'app')
-
-    if not SS.get('period') in date_options:
+    elif not SS.get('period') in date_options:
         SS.period = nor_period = date_options[0]
     
     nor_period  = st.selectbox(

@@ -1,5 +1,3 @@
-from streamlit_echarts import st_echarts, JsCode
-from typing import Literal
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,7 +8,7 @@ from src import *
 from visuals import *
 from src.columns import colName as c, colFormat as f, stockCol as s
 from sections.dashboard import *
-is_james = SS.get('is_james', False)
+is_james = st.query_params.get('authorize') == st.secrets.env.start_lab
 trigger  = get_drive_trigger()
 time_str, date_str = (trigger.split(maxsplit=1) + [None])[:2]
 
