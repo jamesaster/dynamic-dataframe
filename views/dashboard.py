@@ -250,10 +250,8 @@ def main(
     ) | {
     'legend_names'  : [daily_condition, trend_condition, 'Traffic'],
     'vlines'        : 
-    [
-        {"date": "2024-09-27", "label": "iPhone 16 NPI\n🔥Sep 27, 2024 "},
-        {"date": "2025-09-19", "label": "iPhone 17 NPI\n🔥Sep 19, 2025 "}
-    ],
+    [{"date": "2024-09-27", "label": "iPhone 16 NPI\n🔥Sep 27, 2024 "},
+     {"date": "2025-09-19", "label": "iPhone 17 NPI\n🔥Sep 19, 2025 "}],
     'is_money'      : [True, True, False],
     'main_index'    : 1,
     }
@@ -261,9 +259,9 @@ def main(
     is_hero_inventory = SS.get('Show_Inventory', False)
     if is_hero_inventory:
         # 'Show_Inventory' inside sidebar_options()
-        hyper_data = inventory_value[(inventory_value.index >= period_anchor) & (inventory_value.index <= today)] 
-        y_dataa = hyper_data.tolist()
-        rev_n_7dtrend['y_lists'][2]      = y_dataa
+        inventory_range = pd.date_range(period_anchor, today)
+        y_inventory = inventory_value.reindex(inventory_range, fill_value=0).tolist()
+        rev_n_7dtrend['y_lists'][2]      = y_inventory
         rev_n_7dtrend['legend_names'][2] = 'Inventory Value'
         rev_n_7dtrend['is_money'][2]     = True
     
