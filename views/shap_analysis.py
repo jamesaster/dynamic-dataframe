@@ -14,6 +14,40 @@ from scipy.stats import gaussian_kde
 from visuals import styled_header
 import joblib
 import shap
+class F:
+    is_holiday   = 'Holiday'
+    is_npi       = 'NPI iPhone'
+    has_promo    = 'Promotion'
+    has_ins      = 'Installment'
+    has_trade    = 'Trade-In'
+    upt          = 'UPT'
+    atv          = 'ATV'
+    conrate      = 'Conversion Rate'
+    peak_2       = 'Peak Days 2%'
+    peak_5       = 'Peak Days 5%'
+    peak_10      = 'Peak Days 10%'
+    rev_m        = 'Revenue (Million)'
+    traffic_s    = 'Traffic (Scaled)'
+    month        = 'month'
+    weekday      = 'is_weekday'
+    saturday     = 'Saturday'
+    sunday       = 'Sunday'
+    head_count   = 'Headcount'
+    dof_month    = 'day_of_month'
+    dof_week     = 'day_of_week'
+    dof_year     = 'day_of_year'
+
+    recent_bias  = 'recent_weight'
+    
+    traffic      = 'Foot Traffic'
+    traffic_nor  = '5d_traffic'
+    traffic_sat  = 'sat_traffic'
+    traffic_sun  = 'sun_traffic'
+    traffic_NPI  = 'traffic_x_NPI'
+    performance  = 'traffic * conversion * upt'
+
+    invoice_uniq = 'unique_inv'
+    sku_uniq     = 'unique_sku'
 
 # Dashboard mô tả và tối ưu vận hành (Descriptive Analytics)
 
@@ -39,7 +73,7 @@ def get_rf_model(X, y):
     joblib.dump(rf_model, r'D:\Python\Dynamic_Dataframe\random_forest.pkl')
     return rf_model
 
-@st.cache_data
+@st.cache_data(show_spinner='Analyzing feature impacts...')
 def shap_scatter_config(_model: RandomForestRegressor, X: pd.DataFrame):
     def get_shap_data():
         """
@@ -398,18 +432,148 @@ def tune_random_forest_grid(X_train, y_train, X_test, y_test, grid=None):
 #endregion
 
 #region     1. Theme
-st.title("🧪 Feature Impact Analysis")
-st.markdown("""
-<div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 35px; margin-top: 0px;">
-    <span style="font-size: 1.15rem; font-weight: 800; color: #6880AA; vertical-align: -1px; margin-right: 4px;">SHAP</span> 
-    là phương pháp giải thích mô hình học máy dựa trên <strong>lý thuyết trò chơi về sự hợp tác (Game Theory)</strong>.
-    <br>
-    Công cụ này phân tích mức độ đóng góp và hướng tác động của từng <strong>nhân tố (feature)</strong> đến kết quả.
-    <br>
-    <div style="font-size: 0.75rem; font-style: normal; color: #8AA0C4; margin-top: 5px;">
-    * Dữ liệu trong dự án này được giả lập dựa trên xu hướng vận hành thực tế.
-    </div>
-</div> """, unsafe_allow_html=True)
+Language = {
+    'VI': {
+        'title'     : '🧪 Feature Impact Analysis',
+        'sub'       : """
+            <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 35px; margin-top: 0px;">
+            <span style="font-size: 1.15rem; font-weight: 800; color: #6880AA; vertical-align: -1px; margin-right: 4px;">SHAP</span> 
+            là phương pháp giải thích mô hình học máy dựa trên <strong>lý thuyết trò chơi về sự hợp tác (Game Theory)</strong>.
+            <br>
+            Công cụ này phân tích mức độ đóng góp và hướng tác động của từng <strong>nhân tố (feature)</strong> đến kết quả.
+            <br>
+            <div style="font-size: 0.75rem; font-style: normal; color: #8AA0C4; margin-top: 5px;">
+            * Dữ liệu trong dự án này được giả lập dựa trên xu hướng vận hành thực tế.
+            </div>
+            </div> """,
+        'sb_title'  : 'Biểu đồ nói lên điều gì?',
+        'sb_guide'  : """
+            Mỗi biểu đồ là một **bản đồ mô phỏng kịch bản vận hành** từ dữ liệu lịch sử, giúp bạn tự động nhận diện quy luật mà không cần rà soát thủ công.
+
+            ---
+            ### 📐 Ý nghĩa các trục:
+            * **Trục ngang (Chỉ số):** Dải giá trị ghi nhận thực tế (hoặc đại diện cho trạng thái Có / Không).
+            * **Trục dọc (Mức tác động):** Mức tăng trưởng hoặc sụt giảm so với doanh thu trung bình (Baseline).
+            ---
+            ### 🫧 Ý nghĩa vị trí các điểm dữ liệu:
+            * **Trên Baseline:** Tác động tích cực, kéo doanh thu ngày đi lên.
+            * **Tại Baseline (Đường màu cam):** Ngày vận hành ổn định, doanh thu duy trì ở mức nền cơ sở.
+            * **Dưới Baseline:** Không tạo hiệu ứng tích cực hoặc kéo doanh thu ngày đi xuống.
+            ---
+            *Mật độ các chấm cao đại diện cho vùng hội tụ của những ngày mang tính chất điển hình, phản ánh mô hình hành vi chung của hệ thống trong phần lớn thời gian.*
+            """,
+        'feature_info'   : {
+            F.conrate   : {
+                'insight': f'Doanh thu dưới sàn tại <= 3.5%, tăng mạnh nhưng thưa dần từ 5.5%',
+                'action': 'Nhận diện vùng trên **5.5%** còn rất nhiều dư địa tăng trưởng. Cần tập trung tìm hiểu nguyên nhân, duy trì và khai thác tiếp vùng doanh thu cao này. '
+                        'Đồng thời, chủ động cải thiện hiệu suất các ngày có tỷ lệ dưới **3.5%** để đưa doanh thu về lại mức kỳ vọng.',
+                'icon': ':material/shopping_cart_checkout:'
+            },
+            F.upt       : {
+                'insight': 'Tác động tích cực từ 1.5, có dấu hiệu bão hòa và giảm mật độ từ 2.0',
+                'action': 'Tập trung tối ưu và duy trì UPT trong khoảng mục tiêu **1.5 - 1.7** để đạt hiệu quả doanh thu cao nhất. '
+                        'Không cần thiết phải ép chỉ số vượt mốc 2.0 vì sức mua phụ kiện đã chạm trần bão hòa và tần suất đạt được rất thấp.',
+                'icon': ':material/shopping_bag:'
+            },
+            F.traffic   : {
+                'insight': 'Phân hóa tại 500 đại diện cho ngày thường tỉ lệ với cuối tuần, ngày lễ',
+                'action': 'Tập trung đẩy mạnh các chương trình khuyến mãi (Promotion) chuyên biệt cho ngày thường để chủ động kéo lượng khách vượt ngưỡng **500**. Đối với các ngày cao điểm (trên **2,000** khách), chuyển trọng tâm sang điều phối vận hành để khai thác trọn vẹn sức mua.',
+                'icon': ':material/groups:'
+            },
+            F.has_promo : {
+                'insight': 'Khi có khuyến mãi, hiệu quả bị phân hóa thành hai nhóm',
+                'action': 'Rà soát lại danh mục để loại bỏ các chương trình thuộc nhóm hiệu quả thấp **(~20 triệu)**.'
+                    'Tập trung ngân sách cho nhóm thiết kế ưu đãi phía trên để tối đa hóa biên độ tác động doanh thu **(+40 triệu)**.',
+                'icon': ':material/local_offer:'
+            },
+            F.has_trade : {
+                'insight': 'Tác động tốt nhưng biên độ hiệu quả dao động lớn và thưa thớt',
+                'action': 'Duy trì **Trade-In** như một giải pháp gia tăng doanh thu chắc chắn. Cần chuẩn hóa quy trình định giá và kịch bản tư vấn tại quầy để thu hẹp khoảng cách hiệu quả, đẩy các ngày thấp (+5 triệu) lên mức tối ưu hơn.'
+                        '\n- **Lưu ý**: Mức tác động hiển thị trên biểu đồ có vẻ thấp do một phần hiệu quả thực tế đã bị tính gộp vào yếu tố **Promotion**.',
+                'icon': ':material/published_with_changes:'
+            },
+            F.has_ins   : {
+                'insight': 'Mang lại tác động tốt nhưng mức độ còn thấp và mật độ thưa thớt',
+                'action': 'Áp dụng cơ chế thưởng nóng trên mỗi giao dịch trả góp để khuyến khích nhân viên chủ động tư vấn nhằm tăng tần suất chốt đơn. '
+                        '\n- **Lưu ý**: Mức tác động hiển thị trên biểu đồ có vẻ thấp do một phần hiệu quả thực tế đã bị tính gộp vào yếu tố **Promotion**.',
+                'icon': ':material/payments:'
+            },
+        }
+    },
+    'EN': {
+        'title'     : '🧪 Feature Impact Analysis',
+        'sub'       : """
+            <div style="font-size: 0.85rem; color: #6880AA; line-height: 1.5; margin-bottom: 35px; margin-top: 0px;">
+            <span style="font-size: 1.15rem; font-weight: 800; color: #6880AA; vertical-align: -1px; margin-right: 4px;">SHAP</span> 
+            is a method for explaining machine learning models based on <strong>cooperative Game Theory</strong>.
+            <br>
+            This tool analyzes the contribution level and impact direction of each <strong>feature</strong> on the final outcome.
+            <br>
+            <div style="font-size: 0.75rem; font-style: normal; color: #8AA0C4; margin-top: 5px;">
+            * Data in this project is simulated based on actual operational trends.
+            </div>
+            </div> """,
+        'sb_title'  : 'What these charts tell?',
+        'sb_guide'  : """
+            Each chart is an **operational scenario simulation map** derived from historical data, helping you automatically identify patterns without manual review.
+
+            ---
+            ### 📐 Axis Meanings:
+            * **Horizontal Axis (Metric):** The range of actual recorded values (or representing a Yes / No state).
+            * **Vertical Axis (Impact Level):** The growth or decline relative to the average revenue (Baseline).
+            ---
+            ### 🫧 Data Point Position Meanings:
+            * **Above Baseline:** Positive impact, driving daily revenue up.
+            * **At Baseline (Orange Line):** Stable operation day, revenue maintained at the baseline level.
+            * **Below Baseline:** No positive effect or pulling daily revenue down.
+            ---
+            *A high density of dots represents the convergence zone of typical days, reflecting the general behavior pattern of the system most of the time.*
+            """,
+        'feature_info'   : {
+            F.conrate   : {
+                'insight': 'Revenue bottoms at <= 3.5%, increases sharply but thins out from 5.5%',
+                'action': 'Identify the zone above **5.5%** as having substantial growth potential. Focus on analyzing root causes to sustain and exploit this high-revenue zone. '
+                        'Concurrently, proactively improve performance on days below **3.5%** to bring revenue back up to expectations.',
+                'icon': ':material/shopping_cart_checkout:'
+            },
+            F.upt       : {
+                'insight': 'Positive impact from 1.5, sign of saturation and lower density from 2.0',
+                'action': 'Focus on optimizing and maintaining UPT within the target range of **1.5 - 1.7** to maximize revenue efficiency. '
+                        'It is unnecessary to push the metric past 2.0 since accessory purchasing power has hit a ceiling and the achievement frequency is very low.',
+                'icon': ':material/shopping_bag:'
+            },
+            F.traffic   : {
+                'insight': 'Divergence at 500 represents weekdays vs. weekends and holidays',
+                'action': 'Focus on boosting specialized weekday promotions to proactively drive traffic past the **500** threshold. For peak days (over **2,000** visitors), shift focus to operational coordination to fully capture purchasing power.',
+                'icon': ':material/groups:'
+            },
+            F.has_promo : {
+                'insight': 'When promotions active, performance splits into two distinct groups',
+                'action': 'Review the portfolio to eliminate low-performing campaigns **(~20M)**.'
+                    'Concentrate the budget on the upper-tier offer designs to maximize revenue impact margins **(+40M)**.',
+                'icon': ':material/local_offer:'
+            },
+            F.has_trade : {
+                'insight': 'Good impact, but performance margins fluctuate widely and sparsely',
+                'action': 'Maintain **Trade-In** as a reliable revenue-driving solution. Standardize valuation processes and counter-consultation scripts to narrow the performance gap, lifting low-impact days (+5M) to a more optimal level.'
+                        '\n- **Note**: The impact shown on the chart may appear low because a portion of its actual effect has been aggregated into the **Promotion** factor.',
+                'icon': ':material/published_with_changes:'
+            },
+            F.has_ins   : {
+                'insight': 'Delivers good impact, but magnitude remains low and density is sparse',
+                'action': 'Implement instant cash incentives per installment transaction to motivate staff to proactively consult and increase closing frequencies.'
+                        '\n- **Note**: The impact shown on the chart may appear low because a portion of its actual effect has been aggregated into the **Promotion** factor.',
+                'icon': ':material/payments:'
+            },
+        }
+    }
+}
+with st.sidebar:
+    mode = st.segmented_control('Language', ['EN', 'VI'], width='stretch', default='VI', label_visibility='collapsed')
+    st.title(Language[mode]['sb_title'])
+    st.caption(Language[mode]['sb_guide'])
+st.title(Language[mode]['title'])
+st.markdown(Language[mode]['sub'], unsafe_allow_html=True)
 _note = """
 #! Hệ số là chung cho cả bảng, không có hệ số riêng cho từng ngày
 #? Công thức: Doanh thu = (Intercept * 1) + (Slope * Input variable)
@@ -443,7 +607,7 @@ date_mask   = lambda df: df[c.date].between(start_date, end_date)
 
 sales: pd.DataFrame = SS.get('analysis_data', None)
 if sales is None:
-    st.info('Switch to dashboard then swicth back.')
+    st.info('Switch to dashboard then switch back.')
     st.stop()
 
 raw_sales = sales.loc[date_mask, :]
@@ -452,40 +616,6 @@ raw_sales = raw_sales[raw_sales[c.revenue] > 0].reset_index(drop=True)
 #endregion
 
 #region     3. Aggregate config & Feature Engineering
-class F:
-    is_holiday   = 'Holiday'
-    is_npi       = 'NPI iPhone'
-    has_promo    = 'Promotion'
-    has_ins      = 'Installment'
-    has_trade    = 'Trade-In'
-    upt          = 'UPT'
-    atv          = 'ATV'
-    conrate      = 'Conversion Rate'
-    peak_2       = 'Peak Days 2%'
-    peak_5       = 'Peak Days 5%'
-    peak_10      = 'Peak Days 10%'
-    rev_m        = 'Revenue (Million)'
-    traffic_s    = 'Traffic (Scaled)'
-    month        = 'month'
-    weekday      = 'is_weekday'
-    saturday     = 'Saturday'
-    sunday       = 'Sunday'
-    head_count   = 'Headcount'
-    dof_month    = 'day_of_month'
-    dof_week     = 'day_of_week'
-    dof_year     = 'day_of_year'
-
-    recent_bias  = 'recent_weight'
-    
-    traffic      = 'Foot Traffic'
-    traffic_nor  = '5d_traffic'
-    traffic_sat  = 'sat_traffic'
-    traffic_sun  = 'sun_traffic'
-    traffic_NPI  = 'traffic_x_NPI'
-    performance  = 'traffic * conversion * upt'
-
-    invoice_uniq = 'unique_inv'
-    sku_uniq     = 'unique_sku'
 NPI_DAYS     = ['27-09-2024', '19-09-2025']
 aggregate    = {
     c.revenue    : (c.revenue,       'sum'),
@@ -578,68 +708,18 @@ model_pkl = load_files_from_drive()['random_forest.pkl']
 rf_model  = joblib.load(model_pkl)
 
 scatter_ignore_features = [F.is_npi, F.peak_2, F.peak_5, F.saturday, F.sunday, F.head_count]
-scatters     = shap_scatter_config(rf_model, X_full)
-feature_info = {
-    F.conrate   : {
-        'insight': f'Doanh thu dưới sàn tại <= 3.5%, tăng mạnh nhưng thưa dần từ 5.5%',
-        'action': 'Nhận diện vùng trên **5.5%** còn rất nhiều dư địa tăng trưởng. Cần tập trung tìm hiểu nguyên nhân, duy trì và khai thác tiếp vùng doanh thu cao này. '
-                'Đồng thời, chủ động cải thiện hiệu suất các ngày có tỷ lệ dưới **3.5%** để đưa doanh thu về lại mức kỳ vọng.',
-        'icon': ':material/shopping_cart_checkout:'
-    },
-    F.upt       : {
-        'insight': 'Tác động tích cực từ 1.5, có dấu hiệu bão hòa và giảm mật độ từ 2.0',
-        'action': 'Tập trung tối ưu và duy trì UPT trong khoảng mục tiêu **1.5 - 1.7** để đạt hiệu quả doanh thu cao nhất. '
-                'Không cần thiết phải ép chỉ số vượt mốc 2.0 vì sức mua phụ kiện đã chạm trần bão hòa và tần suất đạt được rất thấp.',
-        'icon': ':material/shopping_bag:'
-    },
-    F.traffic   : {
-        'insight': 'Phân hóa tại 500 đại diện cho ngày thường tỉ lệ với cuối tuần, ngày lễ',
-        'action': 'Tập trung đẩy mạnh các chương trình khuyến mãi (Promotion) chuyên biệt cho ngày thường để chủ động kéo lượng khách vượt ngưỡng **500**. Đối với các ngày cao điểm (trên **2,000** khách), chuyển trọng tâm sang điều phối vận hành để khai thác trọn vẹn sức mua.',
-        'icon': ':material/groups:'
-    },
-    F.has_promo : {
-        'insight': 'Khi có khuyến mãi, hiệu quả bị phân hóa thành hai nhóm',
-        'action': 'Rà soát lại danh mục để loại bỏ các chương trình thuộc nhóm hiệu quả thấp **(~20 triệu)**.'
-            'Tập trung ngân sách cho nhóm thiết kế ưu đãi phía trên để tối đa hóa biên độ tác động doanh thu **(+40 triệu)**.',
-        'icon': ':material/local_offer:'
-    },
-    F.has_trade : {
-        'insight': 'Tác động tốt nhưng biên độ hiệu quả dao động lớn và thưa thớt',
-        'action': 'Duy trì **Trade-In** như một giải pháp gia tăng doanh thu chắc chắn. Cần chuẩn hóa quy trình định giá và kịch bản tư vấn tại quầy để thu hẹp khoảng cách hiệu quả, đẩy các ngày thấp (+5 triệu) lên mức tối ưu hơn.'
-                '\n- **Lưu ý**: Mức tác động hiển thị trên biểu đồ có vẻ thấp do một phần hiệu quả thực tế đã bị tính gộp vào yếu tố **Promotion**.',
-        'icon': ':material/published_with_changes:'
-    },
-    F.has_ins   : {
-        'insight': 'Mang lại tác động tốt nhưng mức độ còn thấp và mật độ thưa thớt',
-        'action': 'Áp dụng cơ chế thưởng nóng trên mỗi giao dịch trả góp để khuyến khích nhân viên chủ động tư vấn nhằm tăng tần suất chốt đơn. '
-                '\n- **Lưu ý**: Mức tác động hiển thị trên biểu đồ có vẻ thấp do một phần hiệu quả thực tế đã bị tính gộp vào yếu tố **Promotion**.',
-        'icon': ':material/payments:'
-    },
-}
-with st.sidebar:
-    st.title('Biểu đồ nói lên điều gì?')
-    
-    st.caption("""
-    Mỗi biểu đồ là một **bản đồ mô phỏng kịch bản vận hành** từ dữ liệu lịch sử, giúp bạn tự động nhận diện quy luật mà không cần rà soát thủ công.
+scatters = shap_scatter_config(rf_model, X_full)
 
-    ---
-    ### 📐 Ý nghĩa các trục:
-    * **Trục ngang (Chỉ số):** Dải giá trị ghi nhận thực tế (hoặc đại diện cho trạng thái Có / Không).
-    * **Trục dọc (Mức tác động):** Mức tăng trưởng hoặc sụt giảm so với doanh thu trung bình (Baseline).
-    ---
-    ### 🫧 Ý nghĩa vị trí các điểm dữ liệu:
-    * **Trên Baseline:** Tác động tích cực, kéo doanh thu ngày đi lên.
-    * **Tại Baseline (Đường màu cam):** Ngày vận hành ổn định, doanh thu duy trì ở mức nền cơ sở.
-    * **Dưới Baseline:** Không tạo hiệu ứng tích cực hoặc kéo doanh thu ngày đi xuống.
-    ---
-    *Mật độ các chấm cao đại diện cho vùng hội tụ của những ngày mang tính chất điển hình, phản ánh mô hình hành vi chung của hệ thống trong phần lớn thời gian.*
-    """)
+f_infos = Language[mode]['feature_info']
 st_cols = st.columns(3, gap='large')
+
 for idx, col in enumerate(scatters['col_list']):
     with st_cols[idx % 3]:
         styled_header(col, scatters[col]['sub_header'])
-        with st.popover(feature_info[col]['insight'], width='stretch', type='secondary', icon=feature_info[col]['icon']):
-            st.info(feature_info[col]['action'], icon='💡')
+
+        with st.popover(f_infos[col]['insight'], width='stretch', type='secondary', icon=f_infos[col]['icon']):
+            st.info(f_infos[col]['action'], icon='💡')
+            
         shap_scatter_chart(data=scatters, feature=col, color_idx=idx, unit='Million VND')
         st.space()
 #endregion
