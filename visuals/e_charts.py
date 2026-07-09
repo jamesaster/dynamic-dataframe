@@ -135,55 +135,6 @@ def pie_chart(# Không được @st.fragment
 
 #region Pro   👽
 
-# @st.cache_data
-# def get_line_pro_data(
-#     period_double : pd.DataFrame, 
-#     fix_traffic   : pd.DataFrame, 
-#     period_anchor : pd.Timestamp,
-#     _date         : str = c.date, 
-#     _rev          : str = c.revenue,
-#     _traffic      : str = 'Total Traffic'
-#     ):
-
-#     """
-#     - df: input `Period_double_df` to take advances of rolling buffer. (`HAS` affect of `Advance filters`)  
-#     - traffic: input `Traffic_fixxed_df` which `has NO` affect of `Advance filters` (Preserve Traffic)
-#     >>> return result = traffic.Join(df) 
-#     """
-#     _daily = 'Daily Revenue'
-#     _trend_7d = '7D Trend'
-
-
-
-#     if not period_anchor:
-#         period_anchor = df[_date].min()
-
-#     require_col = [_date, _rev]
-#     groupby_rev  = df[require_col].groupby(_date).agg(**{_daily: (_rev, 'sum')})
-
-#     # Ở đây vẫn cần dùng date_min để tính Rolling
-#     fix_traffic_idx = fix_traffic.index.get_level_values(_date)
-#     REINDATE = pd.date_range(fix_traffic_idx.min(), fix_traffic_idx.max())
-#     df_revenue = groupby_rev.reindex(REINDATE).fillna(0).rename_axis(c.date)
-#     df_revenue[_7d_trend] = df_revenue.rolling(window='7D').mean()
-
-#     # Join Traffic & ( Chop by anchor )
-#     if traffic.index.name != _date:
-#         traffic = traffic.set_index(_date)
-#     join_data = traffic.join(df_revenue, how='outer').fillna(0).reset_index() #! Nhớ fillna(0)
-#     line_data = join_data.loc[join_data[_date] >= period_anchor].copy()
-#     line_data[_date] = line_data[_date].dt.strftime('%Y-%m-%d')
-#     line_data = line_data.to_dict(orient='list')
-
-#     config = {}
-#     config['x_data'] = line_data[_date]
-#     config['y_lists'] = [
-#         line_data[_daily], 
-#         line_data[_7d_trend], 
-#         line_data[_traffic]]
-
-#     return config
-
 @st.cache_data
 def get_line_pro_data(
     period_double   : pd.DataFrame, 
@@ -660,7 +611,6 @@ def line_chart_pro(
         )
     
     return main_event
-
 
 #endregion
 
