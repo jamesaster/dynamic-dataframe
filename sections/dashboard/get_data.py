@@ -358,7 +358,7 @@ def upload_stockLedger(is_james: bool, current_stock: pd.DataFrame, google_servi
             progress_bar.progress(100)
             status_text.markdown('⏳ Uploading...')
             upload_worker(parquet_buffer, google_service)
-            load_files_from_drive.clear(get_drive_trigger())
+            load_files_from_drive.clear(SS.get('trigger_time'))
             SS.upload_worker = 'dimiss'
             SS.upload_worker_counter += 1
             st.rerun(scope='app')
@@ -532,20 +532,40 @@ def demo_data_bundle(
     return stock_ledger, raw, min_date, max_date
 #endregion
 
+@st.fragment(run_every=180)
 def get_drive_trigger(
     service = get_google_connections()['drive'],
-    file_id = authID.sales_id,
-)-> str:
+    file_id = authID.sales_id
+)-> None:
+    """
+    ## Kiểm tra thay đổi của sales_data.csv trên Google Drive mỗi 180 giây.
+
+    - Cơ chế: Mỗi 180s nếu file có thay đổi metadata, trigger rerun app kèm update key thời gian.
+    - Key = `SS.trigger_time`
+        + Tham số đầu vào trigger cho hàm fetch từ Drive (st.cache_data)
+        + Làm sub-headline hiển thị up to date
+    """
     try:
-        meta = service.files().get(fileId=file_id, fields="modifiedTime").execute()
-        utc_str = meta.get("modifiedTime")
+        meta = service.files().get(fileId=file_id, fields='modifiedTime').execute()
+        utc_str = meta.get('modifiedTime')
+
         if not utc_str:
-            return ""
-        modified_time = pd.to_datetime(utc_str).tz_convert("Asia/Ho_Chi_Minh").strftime("%H:%M:%S %d/%m/%Y")
-        return modified_time
-    
+            SS.trigger_time = 'network_error_fallback'
+            return
+
+        modified_time = pd.to_datetime(utc_str).tz_convert('Asia/Ho_Chi_Minh').strftime('%H:%M:%S %d/%m/%Y')
+
+        if not 'trigger_time' in SS:
+            SS.trigger_time = modified_time
+
+        elif modified_time != SS.trigger_time:
+            SS.trigger_time = modified_time
+            st.rerun(scope='app')
+
     except Exception as e:
-        return "network_error_fallback"
+        SS.trigger_time = 'network_error_fallback'
+        return
+
 
 def get_current_past_config(
     max_date: pd.Timestamp 

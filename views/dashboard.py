@@ -8,10 +8,11 @@ from src import *
 from visuals import *
 from src.columns import colName as c, colFormat as f, stockCol as s
 from sections.dashboard import *
+get_drive_trigger() # -> Craete & Update SS.trigger_time
 is_james = st.query_params.get('authorize') == st.secrets.env.start_lab
-trigger  = get_drive_trigger()
-time_str, date_str = (trigger.split(maxsplit=1) + [None])[:2]
+trigger  = SS.trigger_time
 
+time_str, date_str = (trigger.split(maxsplit=1) + [None])[:2]
 
 #region #? 0.   SOURCE
 
@@ -68,7 +69,7 @@ stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_da
 if sales_data is None or sales_data.empty:
     if st.button('Reload'):
         load_files_from_drive.clear()
-        load_files_from_drive.clear(get_drive_trigger())
+        load_files_from_drive.clear(SS.get('trigger_time'))
     else:
         st.stop()
 if is_james:
