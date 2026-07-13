@@ -167,7 +167,6 @@ acc_rules = acc_rules[acc_mask]
 group_acc = [{b.A: head, b.pattern: g_tail} for head, tail in acc_rules.groupby(b.A)[b.pattern] if len(g_tail := set.union(*tail)) >= 3]
 
 summary, result = st.columns([1, 4], gap='large')
-color = "#FFFFFF"
 st.html("""
     <style>
     .st-key-device_attachments, .st-key-accessory_bundles {
