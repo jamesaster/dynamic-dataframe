@@ -55,13 +55,13 @@ path_hashed_product = BASE_DIR / 'data_output' / 'Anonym_Price_update_sku_includ
 #endregion (local)
 
 #region (Google API)
-auth_raw  = load_files_from_drive(trigger)
-sales_raw = auth_raw.get(authID.sales_name)
-stock_raw = auth_raw.get(authID.ledger_name)
+raw_bundle = load_files_from_drive(trigger)
+sales_raw  = raw_bundle.get(authID.sales_name)
+stock_raw  = raw_bundle.get(authID.ledger_name)
+app_data   = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
 
-app_data  = app_data_bundle(sales_raw = sales_raw, stock_raw = stock_raw)
-auth_sales = app_data[1] if app_data else None
-SS.analysis_data = auth_sales
+SS.analysis_stock = app_data[0] if app_data else None
+SS.analysis_sales = app_data[1] if app_data else None
 
 demo_data = demo_data_bundle()
 stock_ledger, sales_data, min_date, max_date = app_data if is_james else demo_data

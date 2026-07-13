@@ -605,7 +605,7 @@ start_date  = pd.to_datetime('01-04-2024', dayfirst=True)
 end_date    = pd.to_datetime('30-06-2026', dayfirst=True)
 date_mask   = lambda df: df[c.date].between(start_date, end_date)
 
-sales: pd.DataFrame = SS.get('analysis_data', None)
+sales: pd.DataFrame = SS.get('analysis_sales', None)
 if sales is None:
     st.info('Switch to dashboard then switch back.')
     st.stop()
