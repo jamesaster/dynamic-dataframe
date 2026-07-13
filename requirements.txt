@@ -15,4 +15,4 @@ statsmodels==0.14.6
 streamlit==1.56.0
 streamlit-echarts==0.6.0
 openpyxl
-mlxtend
+mlxtend==0.23.1
