@@ -56,10 +56,10 @@ class BasketAnalyzer:
         return self
 b = BasketAnalyzer.Col
 @st.cache_data
-def apriori_defined_rules(sales: pd.DataFrame, device_set: set):
+def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset):
     #region #! Matrix / Apriori
     basket_matrix     = pd.crosstab(index=sales[c.invoice], columns=sales[c.sku]).astype(bool)
-    frequent_itemsets = apriori(basket_matrix, min_support=0.0005, use_colnames=True)
+    frequent_itemsets = apriori(basket_matrix, min_support=0.0005, use_colnames=True, low_memory=True)
     keep_columns      = [
         b.A,
         b.B,
@@ -146,7 +146,7 @@ sales = full_sales.loc[
     requires
     ]
 device_mask   = lambda df: ~ df[c.cat].isin(['3RD ACC', 'APPLE ACC'])
-device_set    = set(sales.loc[device_mask, c.sku].tolist())
+device_set    = frozenset(sales.loc[device_mask, c.sku].tolist())
 product_map   = sales[[c.sku, c.prod_name]].drop_duplicates(subset=c.sku).set_index(c.sku)[c.prod_name]
 product_dict  = product_map.to_dict()
 #endregion
