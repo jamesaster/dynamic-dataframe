@@ -69,10 +69,24 @@ def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset):
         b.support,
         b.lift
     ]
-    rules_raw = association_rules(frequent_itemsets, metric=b.lift, min_threshold=3)[keep_columns]
+    rules_raw = association_rules(frequent_itemsets, metric=b.lift, min_threshold=2)[keep_columns]
     #endregion
 
     rules = rules_raw[rules_raw[b.A].apply(len) == 1].copy()
+    
+    #region #? rule_map phục vụ nhặt chỉ số có tính chất cặp lẻ A-B (15-07-26)
+    rule_single = rules[rules[b.B].apply(len) == 1].copy()
+    rule_single[b.A] = [''.join(x) for x in rule_single[b.A]]
+    rule_single[b.B] = [''.join(x) for x in rule_single[b.B]]
+    get_i      = lambda x: rule_single.columns.get_loc(x)
+    rules_keys = rule_single[[b.A, b.B]].to_numpy(str).tolist()
+    df_vals    = rule_single.iloc[:, (get_i(b.B) + 2) :] #* bỏ cột A_support
+    df_vals.iloc[:, :-1] = df_vals.iloc[:, :-1] * 100    #* 3 chỉ số tính theo % trừ lift
+    val_cols   = df_vals.columns
+    rules_vals = df_vals.to_numpy(float).tolist()
+    rules_map  = {tuple(k): v for k, v in zip(rules_keys, rules_vals)}
+    #endregion #?
+
     # có thể zip 2 series và bốc từng cặp dòng ra để union
     # lưu ý gọi hàm a.union(b) chậm hơn là dùng toán tử a | b
         # Khi làm việc với các object kiểu tập hợp (list, set,..) hoặc chuỗi
@@ -86,7 +100,7 @@ def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset):
     rules = rules[make_sense].drop(columns=b.pair_id)
 
     # Unset A và chuyển B về set thuần
-    rules[b.A] = rules[b.A].str.join(', ')
+    rules[b.A] = rules[b.A].str.join('')
     list_of_frozenset = rules[b.B].tolist()
     rules[b.pattern]  = pd.Series([set(f_set) for f_set in list_of_frozenset], index=rules.index)
 
@@ -96,7 +110,7 @@ def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset):
 
     rules = pd.concat([splitted_B, rules.drop(columns=b.B)], axis=1).fillna('-')
     columns = [b.A, b.pattern] + rules.columns.drop([b.A, b.pattern]).tolist()
-    return rules[columns]
+    return rules[columns], rules_map, val_cols
 def product_shorten(series: pd.Series, pattern: Literal['device', 'acc'] = 'device'):
     if pattern == 'device':
         series = series.replace({
@@ -152,8 +166,15 @@ product_dict  = product_map.to_dict()
 #endregion
 
 #region #? Rules (Third try)
-rules = apriori_defined_rules(sales, device_set)
+rules, rules_map, val_cols = apriori_defined_rules(sales, device_set)
 device_rules = rules.loc[rules[b.A].isin(device_set), [b.A, b.pattern]]
+
+device_map = device_rules[[b.A, b.pattern]].explode(b.pattern, ignore_index=True)
+device_map[val_cols] = [rules_map[k] if k in rules_map else [None] * len(val_cols) for k in zip(device_map[b.A], device_map[b.pattern])]
+device_map[b.A] = device_map[b.A].map(product_dict).pipe(product_shorten, pattern='device')
+device_map = device_map.groupby([b.A, b.pattern], as_index=False).agg({c: 'max' for c in val_cols})
+device_map = {i: sub.drop(b.A, axis=1).set_index(b.pattern).to_dict(orient='index') for i, sub in device_map.groupby(b.A)}
+
 device_rules[b.A] = device_rules[b.A].map(product_map).pipe(product_shorten, pattern='device')
 group_device = [
     {b.A: Atd, b.pattern: set.union(*Csq)} 
@@ -173,6 +194,7 @@ st.html("""
         background-color: #E8F2FF !important;
         border: 1px solid #FFFFFF !important;
         padding: 2rem;
+        }
     </style>
 """)
 st.html("""
@@ -182,6 +204,12 @@ st.html("""
     }
     </style>
 """)
+col_config = {
+        b.B_sup     : st.column_config.NumberColumn('Best Accessory Rate', format='%.2f %%'),
+        b.conf      : st.column_config.NumberColumn('Best Attach Rate', format='%.2f %%'),
+        b.support   : st.column_config.NumberColumn('Best Combo Rate', format='%.2f %%'),
+        b.lift      : st.column_config.NumberColumn('Peak Impact Index', format='%.1f')
+    }
 with summary:
     styled_header('Data Summary')
     st.info(
@@ -210,32 +238,25 @@ with result:
     for container_key, group in {'device_attachments': group_device, 'accessory_bundles': group_acc}.items():
         styled_header(container_key.replace('_', ' ').title())
         with st.container(border=True, key=container_key):
-            max_str = len(max([d[b.A] for d in group], key=len))
+            max_str = max(len(d[b.A]) for d in group)
             device_suggestions = st.columns(4, gap='large')
             for idx, subgroup in enumerate(group):
-                antecedent = subgroup[b.A]
-                cons_sku   = sorted(list(subgroup[b.pattern]))
-                cons_name  = list_sku_to_product(cons_sku)
-                str_gap    = (max_str - len(antecedent) + 1) * '\u2000'
-                if i_key  := [i for i in icon_pack if i in antecedent.upper()]:
-                    icon = icon_pack[i_key[0]] if is_icon == 'On' else None
-                else:
-                    icon = None
+                antecedent  = subgroup[b.A]
+                cons_sku    = sorted(subgroup[b.pattern])
+                vals_map    = device_map.get(antecedent, {})
+                df_string   = pd.DataFrame({'SKU': cons_sku, 'Product Name': list_sku_to_product(cons_sku)}, index=range(1, len(cons_sku) + 1))
+                df_vals     = pd.DataFrame([vals_map.get(sku, {}) for sku in cons_sku], index=df_string.index)
+                df_show     = pd.concat([df_string, df_vals], axis=1)
+                str_gap     = (max_str - len(antecedent) + 1) * '\u2000'
+                icon        = next((icon_pack[k] for k in icon_pack if k in antecedent.upper()), None) if is_icon == 'On' else None
                 with device_suggestions[idx % 4]:
-                    sku_count = len(cons_sku)
                     with st.popover(
-                        label   = f'**{antecedent}**{str_gap}| {sku_count:02d}',
+                        label   = f'**{antecedent}**{str_gap}| {len(cons_sku):02d}',
                         width   = 'stretch',
                         icon    = icon,
                         type    = 'secondary'
                         ):
-                        st.dataframe(
-                            pd.DataFrame({'SKU': cons_sku, 'Product Name': cons_name}, index = range(1, sku_count + 1)),
-                            height = 'content',
-                            width  = 1000
-                            )
-
-
+                        st.dataframe(df_show, column_config=col_config, height=500, width=700)
 #endregion
 
 #region Rules (Try 2)
