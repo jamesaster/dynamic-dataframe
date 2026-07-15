@@ -2,10 +2,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import statsmodels.api as sm
-from src.stockledger import *
 from src.columns import colName as c
-from sections.dashboard.get_data import *
-from core.run_auth_pipe import authentic_pipeline
+from sections.dashboard.get_data import load_files_from_drive
 from sklearn.ensemble import RandomForestRegressor
 from statsmodels.nonparametric.smoothers_lowess import lowess
 from streamlit_echarts import st_echarts, JsCode
@@ -14,6 +12,7 @@ from scipy.stats import gaussian_kde
 from visuals import styled_header
 import joblib
 import shap
+SS = st.session_state
 class F:
     is_holiday   = 'Holiday'
     is_npi       = 'NPI iPhone'
