@@ -176,11 +176,12 @@ device_map = device_map.groupby([b.A, b.pattern], as_index=False).agg({c: 'max' 
 device_map = {i: sub.drop(b.A, axis=1).set_index(b.pattern).to_dict(orient='index') for i, sub in device_map.groupby(b.A)}
 
 device_rules[b.A] = device_rules[b.A].map(product_map).pipe(product_shorten, pattern='device')
-group_device = [
-    {b.A: Atd, b.pattern: set.union(*Csq)} 
-    for Atd, Csq in device_rules.groupby(b.A)[b.pattern]
-]
-
+group_device = sorted(
+    [{b.A: Atd, b.pattern: set.union(*Csq)} 
+    for Atd, Csq in device_rules.groupby(b.A)[b.pattern]]
+    ,
+    key = lambda x: len(x[b.pattern]), reverse=True
+)
 acc_rules = rules.loc[~rules[b.A].isin(device_set), [b.A, b.pattern]]
 acc_rules[b.A] = acc_rules[b.A].map(product_map).pipe(product_shorten, pattern='acc')
 acc_mask  = ~ acc_rules[b.A].str.contains(r'^\s*$|^\s*/|(?:\s*cable)', case=False, regex=True)
@@ -194,21 +195,43 @@ st.html("""
         background-color: #E8F2FF !important;
         border: 1px solid #FFFFFF !important;
         padding: 2rem;
-        }
-    </style>
-""")
-st.html("""
-    <style>
-    button[data-testid="stPopoverButton"] div[data-testid="stMarkdownContainer"] p {
+    }
+    div[data-testid="stButton"] button p {
         font-family: monospace !important;
     }
     </style>
 """)
+@st.fragment
+def basket_card(
+    df_show     : pd.DataFrame,
+    col_config  : dict,
+    antecedent  : str,
+    str_gap     : str,
+    icon        : str,
+    cons_sku    : list
+    ):
+    if st.button(
+        label   = f'**{antecedent}**{str_gap}| {len(cons_sku):02d}',
+        width   = 'stretch',
+        icon    = icon,
+        key     = antecedent + '_basket_card'
+    ):
+        @st.dialog(antecedent, width='large', icon='📦')
+        def show_dialog_df(df: pd.DataFrame, column_config: dict):
+            colmap      = dict(zip([x['label'] for x in column_config.values()], list(column_config)))
+            options     = list(colmap)
+            container   = st.container(border=False, horizontal_alignment='center')
+            sort_by     = container.segmented_control('Sort by (Descending)', options=options, default=options[0], key='Sort_name_freq')
+            if sort_by and sort_by != options[0] and (by := colmap[sort_by]) in df.columns:
+                df = df.sort_values(by=by, ascending=False)
+            st.dataframe(df, column_config=column_config, hide_index=True, height=700)
+        show_dialog_df(df_show, col_config)
 col_config = {
-        b.B_sup     : st.column_config.NumberColumn('Best Accessory Rate', format='%.2f %%'),
-        b.conf      : st.column_config.NumberColumn('Best Attach Rate', format='%.2f %%'),
-        b.support   : st.column_config.NumberColumn('Best Combo Rate', format='%.2f %%'),
-        b.lift      : st.column_config.NumberColumn('Peak Impact Index', format='%.1f')
+    c.sku       : st.column_config.TextColumn(c.sku.upper(), width=150),
+    b.B_sup     : st.column_config.NumberColumn('Base Frequency', format='%.1f %%', width='small', alignment='center'),
+    b.conf      : st.column_config.NumberColumn('Top Attach Rate', format='%.1f %%', width='small', alignment='center'),
+    b.support   : st.column_config.ProgressColumn('Top Combo Freq', format='%.1f %%', width='small'),
+    b.lift      : st.column_config.NumberColumn('Max Lift', format='%.1f', width='small', alignment='center'),
     }
 with summary:
     styled_header('Data Summary')
@@ -240,7 +263,10 @@ with result:
         with st.container(border=True, key=container_key):
             max_str = max(len(d[b.A]) for d in group)
             device_suggestions = st.columns(4, gap='large')
+            total_cards = len(group)
+            rows = (total_cards + 3) // 4
             for idx, subgroup in enumerate(group):
+                col_idx     = min(idx // rows, 3)
                 antecedent  = subgroup[b.A]
                 cons_sku    = sorted(subgroup[b.pattern])
                 vals_map    = device_map.get(antecedent, {})
@@ -249,14 +275,9 @@ with result:
                 df_show     = pd.concat([df_string, df_vals], axis=1)
                 str_gap     = (max_str - len(antecedent) + 1) * '\u2000'
                 icon        = next((icon_pack[k] for k in icon_pack if k in antecedent.upper()), None) if is_icon == 'On' else None
-                with device_suggestions[idx % 4]:
-                    with st.popover(
-                        label   = f'**{antecedent}**{str_gap}| {len(cons_sku):02d}',
-                        width   = 'stretch',
-                        icon    = icon,
-                        type    = 'secondary'
-                        ):
-                        st.dataframe(df_show, column_config=col_config, height=500, width=700)
+                with device_suggestions[col_idx]:
+                    basket_card(df_show, col_config, antecedent, str_gap, icon, cons_sku)
+
 #endregion
 
 #region Rules (Try 2)
