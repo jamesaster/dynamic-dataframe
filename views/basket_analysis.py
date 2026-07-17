@@ -143,7 +143,7 @@ def list_sku_to_product(sku_list: list):
 
 #region #? Setup / Source
 
-months_back = st.sidebar.selectbox('**Look Back**', range(1, 13), index=4, format_func=lambda x: f"Last {x} month{'s' if x > 1 else ''}")
+months_back = st.sidebar.selectbox('**Look Back**', range(1, 13), index=11, format_func=lambda x: f"Last {x} month{'s' if x > 1 else ''}")
 end_date    = pd.to_datetime('30-06-2026', dayfirst=True)
 start_date  = end_date - pd.DateOffset(months=months_back)
 date_mask   = lambda df: df[c.date].between(start_date, end_date)
