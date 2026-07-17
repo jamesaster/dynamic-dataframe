@@ -1,4 +1,5 @@
 from mlxtend.frequent_patterns import apriori, association_rules
+from visuals.visuals_helper import custom_sort
 from typing import Literal
 from src.columns import colName as c
 from visuals import styled_header
@@ -56,10 +57,10 @@ class BasketAnalyzer:
         return self
 b = BasketAnalyzer.Col
 @st.cache_data
-def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset):
+def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset, min_support: float=0.0005):
     #region #! Matrix / Apriori
     basket_matrix     = pd.crosstab(index=sales[c.invoice], columns=sales[c.sku]).astype(bool)
-    frequent_itemsets = apriori(basket_matrix, min_support=0.0005, use_colnames=True, low_memory=True)
+    frequent_itemsets = apriori(basket_matrix, min_support=min_support, use_colnames=True, low_memory=True)
     keep_columns      = [
         b.A,
         b.B,
@@ -141,9 +142,10 @@ def list_sku_to_product(sku_list: list):
     return [product_dict.get(sku, '-') for sku in sku_list]
 
 #region #? Setup / Source
-# start_date  = pd.to_datetime('01-01-2026', dayfirst=True)
-start_date  = pd.to_datetime('30-06-2025', dayfirst=True)
+
+months_back = st.sidebar.selectbox('**Look Back**', range(1, 13), index=4, format_func=lambda x: f"Last {x} month{'s' if x > 1 else ''}")
 end_date    = pd.to_datetime('30-06-2026', dayfirst=True)
+start_date  = end_date - pd.DateOffset(months=months_back)
 date_mask   = lambda df: df[c.date].between(start_date, end_date)
 sku_mask    = lambda df: df[c.sku] != '-'
 qty_mask    = lambda df: df[c.qty]  >  0
@@ -159,6 +161,10 @@ sales = full_sales.loc[
     & qty_mask(full_sales),
     requires
     ]
+no_invoice    = sales[c.invoice].nunique()
+target_match  = st.sidebar.slider('**Appearance Frequency**', 2, 10, min(4, months_back), 1)
+factor        = target_match / no_invoice
+
 device_mask   = lambda df: ~ df[c.cat].isin(['3RD ACC', 'APPLE ACC'])
 device_set    = frozenset(sales.loc[device_mask, c.sku].tolist())
 product_map   = sales[[c.sku, c.prod_name]].drop_duplicates(subset=c.sku).set_index(c.sku)[c.prod_name]
@@ -166,8 +172,11 @@ product_dict  = product_map.to_dict()
 #endregion
 
 #region #? Rules (Third try)
-rules, rules_map, val_cols = apriori_defined_rules(sales, device_set)
+rules, rules_map, val_cols = apriori_defined_rules(sales, device_set, factor)
 device_rules = rules.loc[rules[b.A].isin(device_set), [b.A, b.pattern]]
+if len(rules) < 3:
+    st.info('Please Lower the Appearance Frequency')
+    st.stop()
 
 device_map = device_rules[[b.A, b.pattern]].explode(b.pattern, ignore_index=True)
 device_map[val_cols] = [rules_map[k] if k in rules_map else [None] * len(val_cols) for k in zip(device_map[b.A], device_map[b.pattern])]
@@ -180,13 +189,18 @@ group_device = sorted(
     [{b.A: Atd, b.pattern: set.union(*Csq)} 
     for Atd, Csq in device_rules.groupby(b.A)[b.pattern]]
     ,
-    key = lambda x: len(x[b.pattern]), reverse=True
+    key = lambda x: custom_sort(x[b.A])
 )
+
 acc_rules = rules.loc[~rules[b.A].isin(device_set), [b.A, b.pattern]]
 acc_rules[b.A] = acc_rules[b.A].map(product_map).pipe(product_shorten, pattern='acc')
 acc_mask  = ~ acc_rules[b.A].str.contains(r'^\s*$|^\s*/|(?:\s*cable)', case=False, regex=True)
 acc_rules = acc_rules[acc_mask]
 group_acc = [{b.A: head, b.pattern: g_tail} for head, tail in acc_rules.groupby(b.A)[b.pattern] if len(g_tail := set.union(*tail)) >= 3]
+
+if not (group_device and group_acc):
+    st.info('Please Lower the Appearance Frequency')
+    st.stop()
 
 summary, result = st.columns([1, 4], gap='large')
 st.html("""
@@ -208,13 +222,14 @@ def basket_card(
     antecedent  : str,
     str_gap     : str,
     icon        : str,
-    cons_sku    : list
+    cons_sku    : list,
+    idx         : int
     ):
     if st.button(
-        label   = f'**{antecedent}**{str_gap}| {len(cons_sku):02d}',
+        label   = f'{antecedent}{str_gap}| {len(cons_sku):02d}',
         width   = 'stretch',
         icon    = icon,
-        key     = antecedent + '_basket_card'
+        key     = f'{antecedent}_basket_card_{idx}'
     ):
         @st.dialog(antecedent, width='large', icon='📦')
         def show_dialog_df(df: pd.DataFrame, column_config: dict):
@@ -261,7 +276,7 @@ with result:
     for container_key, group in {'device_attachments': group_device, 'accessory_bundles': group_acc}.items():
         styled_header(container_key.replace('_', ' ').title())
         with st.container(border=True, key=container_key):
-            max_str = max(len(d[b.A]) for d in group)
+            max_str = min(17, max(len(d[b.A]) for d in group))
             device_suggestions = st.columns(4, gap='large')
             total_cards = len(group)
             rows = (total_cards + 3) // 4
@@ -274,37 +289,11 @@ with result:
                 df_vals     = pd.DataFrame([vals_map.get(sku, {}) for sku in cons_sku], index=df_string.index)
                 df_show     = pd.concat([df_string, df_vals], axis=1)
                 str_gap     = (max_str - len(antecedent) + 1) * '\u2000'
-                icon        = next((icon_pack[k] for k in icon_pack if k in antecedent.upper()), None) if is_icon == 'On' else None
+                icon        = (next((icon_pack[k] for k in icon_pack 
+                                if k in antecedent.upper()), None) 
+                                    if is_icon == 'On'
+                                    and container_key == 'device_attachments' else None)
                 with device_suggestions[col_idx]:
-                    basket_card(df_show, col_config, antecedent, str_gap, icon, cons_sku)
+                    basket_card(df_show, col_config, antecedent, str_gap, icon, cons_sku, idx)
 
-#endregion
-
-#region Rules (Try 2)
-# # Tạo pair_id từ frozenset mặc dù Nhanh hơn nhưng không giữ đc bản chất A, B -> join trước khi tạo id
-# # Phải sort để SKU Apple lên đầu khi join
-# rules[b.A] = rules[b.A].map(sorted).str.join(', ')
-# rules[b.B] = rules[b.B].map(sorted).str.join(', ')
-# rules['pair_id'] = rules.apply(lambda r: tuple(sorted([r[b.A], r[b.B]])), axis=1)
-# rules = rules.sort_values(by=['pair_id', b.conf], ascending=[True, False])
-# rules = rules.drop_duplicates(subset='pair_id', keep='first', ignore_index=True).drop(columns='pair_id')
-
-# not_B_single = rules[b.B].str.contains(',').any()
-# splitted_A = rules[b.A].str.split(', ', expand=True)
-# splitted_A.columns = b.A + '_' + splitted_A.columns.astype(str)
-# rules = pd.concat([splitted_A, rules.drop(columns=b.A)], axis=1)
-
-# # Tạo id lần 2
-# subset = rules.loc[:, :b.B].fillna('').astype(str)
-# rules['pair_id'] = [' '.join(sorted(row)) for row in subset.values]
-# rules = rules.sort_values(by=['pair_id', b.lift], ascending=[True, False])
-# # rules = rules.drop_duplicates(subset='pair_id', keep='first', ignore_index=True).drop(columns='pair_id')
-
-# # B should be single after sort and drop (single confidence should always be larger)
-# if not_B_single:
-#     st.info('B are not single')
-#     st.stop()
-# # Show product name
-# if st.segmented_control('label', options=['Name', 'SKU'], default='SKU', label_visibility='collapsed') == 'Name':
-#     rules.loc[:, :b.B] = rules.loc[:, :b.B].apply(lambda col: col.map(product_map))
 #endregion
