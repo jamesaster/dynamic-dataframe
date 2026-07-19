@@ -185,7 +185,7 @@ def sidebar_signature():
     """
     ### Đi cùng `sidebar_options()`
     """
-    st.space('xxlarge')
+    st.space('medium')
     st.html("""
     <style>
         @keyframes complex-collision {
