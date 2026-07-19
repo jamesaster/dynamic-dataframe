@@ -761,7 +761,7 @@ def finder(
     # Cần đặt NOTE 'date_input' sau khi tạo 'raw_input' NOTE để ghi đè khi fragment rerun.
     f_date.date_input(
         label            = '**Pick a date**',
-        value            = date_input_default,
+        value            = date_input_default if date_input_default < max_date else max_date,
         min_value        = min_date,
         max_value        = max_date,
         key              = finder_date_select_key,
