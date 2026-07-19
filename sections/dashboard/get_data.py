@@ -136,20 +136,17 @@ def normalize_sales_sheet(sales_raw: pd.DataFrame):
     sales = sales_raw[sales_raw[r.cat] != 'BANK FEE']
     sales = sales.replace(r'^\s*$', pd.NA, regex=True)
 
-    # Chuẩn hóa Sub LOB - bắt buộc (Bước sau map ngược lại vào stockLedger)
+    # Chuẩn hóa Sub LOB - bắt buộc (Để bước sau map ngược lại vào stockLedger)
     sales[r.subcat] = sales[r.subcat].str.title().str.replace(r'^Ip', 'iP', regex=True)
-    
-    cat_list = ['3RD ACC', 'APPLE ACC', 'IPHONE', 'IPAD', 'WATCH', 'MAC'] + [None]
     cat_map  = {
         'ACCESSORIES (APPLE)': 'APPLE ACC',
         'QOALA'              : 'APPLE ACC',
         'IPHONE 16'          : 'IPHONE',
     }
     sales[r.cat] = sales[r.cat].replace(cat_map)
-    after_list = sales[r.cat].unique().tolist()
-
-    if set(cat_list) != set(after_list):
-        return print('cat không khớp', after_list)
+    after_cat = sales[r.cat].dropna().unique().tolist()
+    if set(['3RD ACC', 'APPLE ACC', 'IPHONE', 'IPAD', 'WATCH', 'MAC']) != set(after_cat):
+        return print('[normalize_sales_sheet]: Error', after_cat)
 
     return sales.reset_index(drop=True)
 
