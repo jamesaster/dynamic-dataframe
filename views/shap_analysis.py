@@ -1,17 +1,17 @@
-import numpy as np
-import pandas as pd
 import streamlit as st
-import statsmodels.api as sm
-from src.columns import colName as c
-from sections.dashboard.get_data import load_files_from_drive
-from sklearn.ensemble import RandomForestRegressor
-from statsmodels.nonparametric.smoothers_lowess import lowess
-from streamlit_echarts import st_echarts, JsCode
-from sklearn.metrics import mean_absolute_error, r2_score
-from scipy.stats import gaussian_kde
-from visuals import styled_header
-import joblib
-import shap
+with st.spinner('Loading heavy components...'):
+    from sections.dashboard.get_data import load_files_from_drive
+    from sklearn.ensemble import RandomForestRegressor
+    from streamlit_echarts import st_echarts, JsCode
+    from sklearn.metrics import mean_absolute_error, r2_score
+    from scipy.stats import gaussian_kde
+    from src.columns import colName as c
+    from visuals import styled_header
+    import pandas as pd
+    import numpy as np
+    import joblib
+    import shap
+    # import statsmodels.api as sm
 SS = st.session_state
 class F:
     is_holiday   = 'Holiday'
@@ -91,7 +91,7 @@ def shap_scatter_config(_model: RandomForestRegressor, X: pd.DataFrame):
         y_axis     = pd.DataFrame(shap_array, columns=features).round(2)
 
         return x_axis, y_axis, base_y
-    
+
     x_axis, y_axis, base = get_shap_data()
     features = y_axis.columns
     scatters = {}
@@ -388,8 +388,6 @@ def tune_random_forest_grid(X_train, y_train, X_test, y_test, grid=None):
     in ra kết quả trực tiếp và trả về bộ tham số tối ưu nhất dựa trên R2 Test.
     """
     import itertools
-    from sklearn.ensemble import RandomForestRegressor
-    from sklearn.metrics import r2_score, mean_absolute_error
 
     # Cấu hình grid mặc định nếu không truyền vào
     if grid is None:
@@ -512,7 +510,7 @@ Language = {
             * Data in this project is simulated based on actual operational trends.
             </div>
             </div> """,
-        'sb_title'  : 'What these charts tell?',
+        'sb_title'  : 'What do these charts tell us?',
         'sb_guide'  : """
             Each chart is an **operational scenario simulation map** derived from historical data, helping you automatically identify patterns without manual review.
 
@@ -568,9 +566,9 @@ Language = {
     }
 }
 with st.sidebar:
-    mode = st.segmented_control('Language', ['EN', 'VI'], width='stretch', default='VI', label_visibility='collapsed')
-    st.title(Language[mode]['sb_title'])
-    st.caption(Language[mode]['sb_guide'])
+    mode = st.pills('Language', ['EN', 'VI'], width='stretch', default='EN', required=True, label_visibility='collapsed')
+    with st.expander(Language[mode]['sb_title'], width='stretch'):
+        st.caption(Language[mode]['sb_guide'])
 st.title(Language[mode]['title'])
 st.markdown(Language[mode]['sub'], unsafe_allow_html=True)
 _note = """
@@ -703,11 +701,13 @@ y_full  = df_ready[col_y]
 #region     #* Random Forest + UI
 # rf_model = get_rf_model(X_full, y_full)
 # evaluate_model(rf_model, col_X, X_train, y_train, X_test, y_test)
+
 model_pkl = load_files_from_drive()['random_forest.pkl']
 rf_model  = joblib.load(model_pkl)
 
 scatter_ignore_features = [F.is_npi, F.peak_2, F.peak_5, F.saturday, F.sunday, F.head_count]
-scatters = shap_scatter_config(rf_model, X_full)
+with st.spinner('Configuring Charts...', show_time=True):
+    scatters = shap_scatter_config(rf_model, X_full)
 
 f_infos = Language[mode]['feature_info']
 st_cols = st.columns(3, gap='large')

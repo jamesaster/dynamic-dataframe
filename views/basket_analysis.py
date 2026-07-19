@@ -57,7 +57,7 @@ class BasketAnalyzer:
         return self
 b = BasketAnalyzer.Col
 @st.cache_data
-def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset, min_support: float=0.0005):
+def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset, min_support: float=0.01):
     #region #! Matrix / Apriori
     basket_matrix     = pd.crosstab(index=sales[c.invoice], columns=sales[c.sku]).astype(bool)
     frequent_itemsets = apriori(basket_matrix, min_support=min_support, use_colnames=True, low_memory=True)
@@ -111,7 +111,7 @@ def apriori_defined_rules(sales: pd.DataFrame, device_set: frozenset, min_suppor
 
     rules = pd.concat([splitted_B, rules.drop(columns=b.B)], axis=1).fillna('-')
     columns = [b.A, b.pattern] + rules.columns.drop([b.A, b.pattern]).tolist()
-    return rules[columns], rules_map, val_cols
+    return rules_raw, rules[columns], rules_map, val_cols
 def product_shorten(series: pd.Series, pattern: Literal['device', 'acc'] = 'device'):
     if pattern == 'device':
         series = series.replace({
@@ -142,7 +142,6 @@ def list_sku_to_product(sku_list: list):
     return [product_dict.get(sku, '-') for sku in sku_list]
 
 #region #? Setup / Source
-
 months_back = st.sidebar.selectbox('**Look Back**', range(1, 13), index=11, format_func=lambda x: f"Last {x} month{'s' if x > 1 else ''}")
 end_date    = pd.to_datetime('30-06-2026', dayfirst=True)
 start_date  = end_date - pd.DateOffset(months=months_back)
@@ -151,8 +150,8 @@ sku_mask    = lambda df: df[c.sku] != '-'
 qty_mask    = lambda df: df[c.qty]  >  0
 requires    = [c.invoice, c.cat, c.sku, c.prod_name, c.qty]
 full_sales: pd.DataFrame = SS.get('analysis_sales', None)
-full_stock: pd.DataFrame = SS.get('analysis_stock', None)
-if full_sales is None or full_stock is None:
+
+if full_sales is None:
     st.info('Switch to dashboard then switch back.')
     st.stop()
 sales = full_sales.loc[
@@ -161,8 +160,11 @@ sales = full_sales.loc[
     & qty_mask(full_sales),
     requires
     ]
+
 no_invoice    = sales[c.invoice].nunique()
-target_match  = st.sidebar.slider('**Appearance Frequency**', 2, 10, min(4, months_back), 1)
+target_match  = st.sidebar.slider('**Min Appearance**', 2, 10, min(4, months_back), 1)
+min_dev       = st.sidebar.slider('**Min Associated Items** (Device)', 1, 10, 1, 1)
+min_acc       = st.sidebar.slider('**Min Associated Items** (Accessory)', 1, 10, 2, 1)
 factor        = target_match / no_invoice
 
 device_mask   = lambda df: ~ df[c.cat].isin(['3RD ACC', 'APPLE ACC'])
@@ -172,10 +174,10 @@ product_dict  = product_map.to_dict()
 #endregion
 
 #region #? Rules (Third try)
-rules, rules_map, val_cols = apriori_defined_rules(sales, device_set, factor)
+raw, rules, rules_map, val_cols = apriori_defined_rules(sales, device_set, factor)
 device_rules = rules.loc[rules[b.A].isin(device_set), [b.A, b.pattern]]
 if len(rules) < 3:
-    st.info('Please Lower the Appearance Frequency')
+    st.info('Please Lower the Appearance')
     st.stop()
 
 device_map = device_rules[[b.A, b.pattern]].explode(b.pattern, ignore_index=True)
@@ -186,8 +188,9 @@ device_map = {i: sub.drop(b.A, axis=1).set_index(b.pattern).to_dict(orient='inde
 
 device_rules[b.A] = device_rules[b.A].map(product_map).pipe(product_shorten, pattern='device')
 group_device = sorted(
-    [{b.A: Atd, b.pattern: set.union(*Csq)} 
-    for Atd, Csq in device_rules.groupby(b.A)[b.pattern]]
+    [{b.A: Atd, b.pattern: g_Csq} 
+    for Atd, Csq in device_rules.groupby(b.A)[b.pattern]
+    if len(g_Csq := set.union(*Csq)) >= min_dev]
     ,
     key = lambda x: custom_sort(x[b.A])
 )
@@ -196,11 +199,7 @@ acc_rules = rules.loc[~rules[b.A].isin(device_set), [b.A, b.pattern]]
 acc_rules[b.A] = acc_rules[b.A].map(product_map).pipe(product_shorten, pattern='acc')
 acc_mask  = ~ acc_rules[b.A].str.contains(r'^\s*$|^\s*/|(?:\s*cable)', case=False, regex=True)
 acc_rules = acc_rules[acc_mask]
-group_acc = [{b.A: head, b.pattern: g_tail} for head, tail in acc_rules.groupby(b.A)[b.pattern] if len(g_tail := set.union(*tail)) >= 3]
-
-if not (group_device and group_acc):
-    st.info('Please Lower the Appearance Frequency')
-    st.stop()
+group_acc = [{b.A: head, b.pattern: g_tail} for head, tail in acc_rules.groupby(b.A)[b.pattern] if len(g_tail := set.union(*tail)) >= min_acc]
 
 summary, result = st.columns([1, 4], gap='large')
 st.html("""
@@ -265,7 +264,7 @@ with summary:
         The number shows its total associated items.
         **Click** on any **card** to unlock deeper metrics.
         """, icon='💡')
-    is_icon = st.segmented_control('**Device Icon**', options=['On', 'Off'], default='Off', width='stretch')
+    is_icon = st.pills('**Device Icon**', options=['On', 'Off'], default='Off', required=True, width='stretch')
 with result:
     icon_pack = {
         'IPHONE'    : ':material/mobile_2:',
@@ -276,6 +275,9 @@ with result:
     for container_key, group in {'device_attachments': group_device, 'accessory_bundles': group_acc}.items():
         styled_header(container_key.replace('_', ' ').title())
         with st.container(border=True, key=container_key):
+            if not group:
+                st.info('Please Lower the Appearance')
+                continue
             max_str = min(17, max(len(d[b.A]) for d in group))
             device_suggestions = st.columns(4, gap='large')
             total_cards = len(group)
@@ -295,5 +297,8 @@ with result:
                                     and container_key == 'device_attachments' else None)
                 with device_suggestions[col_idx]:
                     basket_card(df_show, col_config, antecedent, str_gap, icon, cons_sku, idx)
-
+with st.popover('**Raw Apriori Rules**', width='stretch', type='tertiary', icon=':material/table_view:'):
+    raw[b.A] = [list_sku_to_product(x) for x in raw[b.A]]
+    raw[b.B] = [list_sku_to_product(x) for x in raw[b.B]]
+    st.dataframe(raw, height=700)
 #endregion
