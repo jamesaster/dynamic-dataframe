@@ -73,7 +73,7 @@ css_hidden_hero = f"<h6 style='text-align: left; color: rgba(52, 67, 109, 0.55);
 dashboard_page = st.Page('views/dashboard.py', title='Dashboard', icon=':material/analytics:')
 shap_page      = st.Page('views/shap_analysis.py', title='Impact', icon=':material/experiment:')
 basket_page    = st.Page('views/basket_analysis.py', title='Basket', icon=':material/shopping_bag:')
-pipelines_page = st.Page('views/demo.py', title='Data Pipelines', icon=':material/rocket_launch:')
+pipelines_page = st.Page('views/demo.py', title='Engine', icon=':material/rocket_launch:')
 
 page_list      = [dashboard_page, shap_page, basket_page, pipelines_page]
 pages          = st.navigation(page_list, position='sidebar', expanded=True)
