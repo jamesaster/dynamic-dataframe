@@ -1718,13 +1718,11 @@ def get_month_progress(
     if month_count == 1:
         exact_month = month_df[_month].values[0]
         month_target = target_df.loc[target_df[_month] == exact_month, month_targer_col].values[0]
-
         month_progress = month_df.groupby([_month, _cat], as_index=False, observed=True)[_rev].sum()
         
         new_idx = month_progress.last_valid_index() + 1
-
         total_row = pd.DataFrame(
-            [[None, 'TOTAL TARGET', month_progress[_rev].sum()]], 
+            [['', 'TOTAL TARGET', month_progress[_rev].sum()]], 
             columns=month_progress.columns,
             index=[new_idx]
         )
