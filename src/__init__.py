@@ -11,7 +11,7 @@ from src.datetime_logic import chunks_maker, validate_n_correct_chunks, recover_
 from src.stage_n_execute_logic import stage_0, stage_1, execution
 
 #.5 Customer_pipe
-from src.customer_logic import cus_normalize, create_cust_master, base32_encode, create_cus_id
+from src.customer_logic import *
 
 #.6 StockLedger Logic
 from src.stockledger import *

@@ -3,11 +3,48 @@ import numpy as np
 import base64
 import re
 
+def process_customer_info(df: pd.DataFrame):
+    from src import colName as c
+    cuss = [c.cus_id, c.cus_name, c.cus_email]
+
+    df[cuss] = (
+        df[cuss].astype('string')
+        .apply(
+            lambda col: col
+            .str.lower()
+            .str.replace(r'\s+', ' ', regex=True)
+            .str.strip()
+        ).replace('', pd.NA)
+    )
+
+    valid_email = df[c.cus_email].str.contains(
+        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', 
+        regex=True, 
+        na=False
+    )
+    df[c.cus_email] = df[c.cus_email].where(valid_email, pd.NA)
+
+
+    phone = df[c.cus_id].str.replace(r'\D', '', regex=True)
+    phone = phone.str.replace(r'^84', '0', regex=True)
+    missing_zero = (phone.str.len() == 9) & (~phone.str.startswith('0', na=False))
+    phone = phone.where(~missing_zero, '0' + phone)
+
+    valid_phone = phone.str.startswith('0', na=False) & (phone.str.len() == 10)
+    df[c.cus_id] = phone.where(valid_phone, pd.NA)
+
+    df[c.cus_name] = (
+        df[c.cus_name]
+        .replace('unknown', pd.NA)
+        .str.title()
+    )
+    return df
+
 def cus_normalize(df: pd.DataFrame, _p: str, _n: str, _e: str)-> pd.DataFrame:
-    customer = [_p, _n, _e]
+    cus_cols = [_p, _n, _e]
    
     #! 1. lower  >   replace(r'\s+')  >   strip
-    df[customer] = df[customer].apply(lambda col: col.astype('string').str.lower().str.replace(r'\s+', ' ',regex=True).str.strip().replace('', np.nan))
+    df[cus_cols] = df[cus_cols].astype('string').apply(lambda col: col.str.lower().str.replace(r'\s+', ' ',regex=True).str.strip().replace('', np.nan))
 
     #! 2. Filter email
     e_mask = df[_e].str.contains(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', regex=True)
