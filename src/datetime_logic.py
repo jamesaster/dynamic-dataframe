@@ -6,6 +6,7 @@ def week_month_year(df: pd.DataFrame):
     df[c.month] = df[c.date].dt.strftime(f.month)
     monday = df[c.date] - pd.to_timedelta(df[c.date].dt.weekday, unit='D')
     df.insert(1, c.week, monday.dt.strftime('%g-W%V') + monday.dt.strftime(' (%d %b)'))
+    df[[c.week, c.month]] = df[[c.week, c.month]].astype('string')
     return df
 
 # ---- Nhóm Date -----
