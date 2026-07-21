@@ -3,7 +3,6 @@ import io
 import os
 import json
 import pandas as pd
-import plotly.express as px
 from pathlib import Path
 from dotenv import load_dotenv
 from contextlib import redirect_stdout
