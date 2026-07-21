@@ -9,6 +9,7 @@ desktop.ini
 *.egg-info/
 
 # Folders to ignore
+venv/
 notebooks/
 config/
 data_output/
