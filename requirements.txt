@@ -11,7 +11,7 @@ scipy==1.17.1
 llvmlite==0.47.0
 shap==0.52.0
 statsmodels==0.14.6
-streamlit==1.56.0
+streamlit==1.57.0
 streamlit-echarts==0.6.0
 mlxtend==0.25.0
 openpyxl
