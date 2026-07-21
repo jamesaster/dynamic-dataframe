@@ -10,6 +10,7 @@ desktop.ini
 
 # Folders to ignore
 venv/
+.venv/
 notebooks/
 config/
 data_output/
